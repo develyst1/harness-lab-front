@@ -1,0 +1,293 @@
+/* Ported from the reference page's <style> (llm-rent/harness-lab-pack/reference/index.html lines 5–216),
+   same variables and class names. Only --display / --body / --mono changed: they point at the next/font
+   families declared in app/layout.tsx. Imported after @mantine/core/styles.css so these rules win.
+   Changed after the owner's first AC-1 look (TASK-003, SPEC-001 § Layout and accessibility rules): the --*-ink text
+   tokens and the stamps that use them (L4), the คำตอบ cards as one subgrid and its blocks on one edge (L1, L2), and
+   44 px tap targets for nav links and "▶ ดูคลิป" (L5). Each change is marked "L1"…"L5" below. TASK-004 added the
+   ladder, the no-clip panel, the ประวัติ subgrid (L6), the Select styling and 44 px tabs, each with its own comment. */
+/* Layout: answer first. A sticky bar of five stops; the answer and its three model cards, then the clips, then history and compare; the deep detail folds away under "เบื้องหลัง". Every number is drawn from RUNS. */
+:root {
+  --bg: #eef1f3; --paper: #fbfcfc; --ink: #15212b; --mute: #5b6875; --line: #d5dce2;
+  --signal: #0b6f7a; --signal-soft: #d5ecee; --review: #a8630a; --review-soft: #f6e6cf;
+  --ok: #1e7a45; --ok-soft: #dcefe3; --bad: #b3362d; --bad-soft: #f6dedb; --think: #5a4fb3; --think-soft: #e6e3f7;
+  --display: var(--font-bai-jamjuree), var(--font-plex-thai), system-ui, sans-serif;
+  --body: var(--font-plex-thai), system-ui, sans-serif;
+  --mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+  /* L4: small text on a soft tint. Same hue, darker only as far as 4.5:1 needs; equal to the reference where it passes. */
+  --ok-ink: #1d7844; --review-ink: #975909; --bad-ink: #b3362d; --signal-ink: #0b6f7a;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1418; --paper: #161d23; --ink: #e4eaee; --mute: #93a1ad; --line: #2a343d;
+  --signal: #4fc3cf; --signal-soft: #143238; --review: #e3a14b; --review-soft: #3a2a14;
+  --ok: #5ccf8c; --ok-soft: #15301f; --bad: #f08176; --bad-soft: #3a1c19; --think: #a99cff; --think-soft: #262243; color-scheme: dark;
+  --ok-ink: #5ccf8c; --review-ink: #e3a14b; --bad-ink: #f08176; --signal-ink: #4fc3cf } }
+:root[data-theme="dark"] {
+  --bg: #0f1418; --paper: #161d23; --ink: #e4eaee; --mute: #93a1ad; --line: #2a343d;
+  --signal: #4fc3cf; --signal-soft: #143238; --review: #e3a14b; --review-soft: #3a2a14;
+  --ok: #5ccf8c; --ok-soft: #15301f; --bad: #f08176; --bad-soft: #3a1c19; --think: #a99cff; --think-soft: #262243; color-scheme: dark;
+  --ok-ink: #5ccf8c; --review-ink: #e3a14b; --bad-ink: #f08176; --signal-ink: #4fc3cf }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html { scroll-behavior: smooth; scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px)) }
+body { background: var(--bg); color: var(--ink); font: 16px/1.7 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper) }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0 }
+h1 { font-size: clamp(30px, 5.2vw, 48px); line-height: 1.08; letter-spacing: -.01em }
+h2 { font-size: clamp(23px, 3.2vw, 30px); line-height: 1.2 }
+h3 { font-size: 18px; line-height: 1.3 }
+p { margin: 0; max-width: 66ch }
+.run { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--signal) }
+.mute { color: var(--mute) }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+section { display: grid; gap: 18px; min-width: 0 }
+.proved { border-left: 3px solid var(--signal); padding: 4px 0 4px 14px; font-weight: 500 }
+button, select { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 4px }
+
+/* Sticky stops */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line) }
+.nav .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 6px; height: 56px; overflow-x: auto; scrollbar-width: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.nav .in::-webkit-scrollbar { display: none }
+.nav .brand { font: 700 17px var(--display); margin-right: 10px; white-space: nowrap }
+.nav .brand span { color: var(--signal) }
+.nav a { text-decoration: none; color: var(--mute); font-size: 14.5px; padding: 6px 12px; border-radius: 99px; white-space: nowrap; transition: background .2s, color .2s;
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; flex: none } /* L5; flex: none keeps a link from shrinking under its text in the scrolling bar */
+.nav a:hover { background: var(--bg); color: var(--ink) }
+.nav a.on { background: var(--signal-soft); color: var(--signal-ink); font-weight: 600 } /* L4 */
+
+/* Hero */
+.hero { display: grid; gap: 14px }
+.hero .who { font: 500 13px var(--mono); color: var(--mute) }
+
+/* The answer */
+.answer { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 18px }
+.answer .verdict { font: 600 clamp(20px, 2.8vw, 26px)/1.35 var(--display); max-width: none } /* L2 */
+.answer .verdict b { color: var(--ok) }
+.how { font-size: 14px; color: var(--mute); background: var(--bg); border-radius: 10px; padding: 10px 14px; max-width: none } /* L2 */
+.models { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+@media (max-width: 780px) { .models { grid-template-columns: 1fr } }
+/* L1: the cards share the rows of .models — each card spans its 8 rows (stamp · name · quant line · description ·
+   dots · minutes · gauge · clip button), so every kind of row starts at the same height in every card. */
+.model { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; grid-template-rows: subgrid; grid-row: span 8; gap: 12px; background: var(--paper);
+  transition: transform .2s, border-color .2s, box-shadow .2s }
+.model:hover { transform: translateY(-2px); border-color: var(--signal); box-shadow: 0 6px 18px -12px var(--signal) }
+.model.best { border: 2px solid var(--ok) }
+.model .quant { font: 500 18px/1.3 var(--display); margin-top: -8px } /* sits 4 px under the model name: one unit, two rows */
+.stamp { justify-self: start; align-self: start; font: 600 12px var(--mono); padding: 2px 10px; border-radius: 99px }
+.stamp.ok { background: var(--ok-soft); color: var(--ok-ink) } .stamp.bad { background: var(--bad-soft); color: var(--bad-ink) } .stamp.part { background: var(--review-soft); color: var(--review-ink) } /* L4 */
+.model .tag { font-size: 14px; color: var(--mute); line-height: 1.5 }
+.stat { display: grid; gap: 4px }
+.stat .k { font-size: 13px; color: var(--mute) }
+.stat .v { font: 600 18px var(--mono); font-variant-numeric: tabular-nums }
+.dots { display: flex; gap: 6px; align-items: center }
+.dots i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); display: block }
+.dots i.y { background: var(--ok); border-color: var(--ok) } .dots i.n { background: var(--bad-soft); border-color: var(--bad) }
+.dots span { font: 600 15px var(--mono); margin-left: 4px }
+.mini { height: 10px; background: var(--bg); border-radius: 99px; overflow: hidden; position: relative }
+.mini i { position: absolute; inset: 0 auto 0 0; background: var(--signal); border-radius: 99px }
+.mini i.tight { background: var(--review) }
+.mini .l75 { position: absolute; top: -2px; bottom: -2px; left: 75%; border-left: 2px dashed var(--ink); opacity: .4 }
+.play { justify-self: start; border: 1px solid var(--signal); background: none; color: var(--signal); border-radius: 99px; padding: 5px 14px; cursor: pointer; font-size: 14px; font-weight: 600;
+  align-self: start; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px } /* L5 */
+.play:hover { background: var(--signal); color: var(--paper) }
+/* The level ladder in คำตอบ (TASK-004): six cards share the 3 rows of .levels by subgrid (level + mark · means · test).
+   now / next: a coloured ring (box-shadow, so no card's size changes) and a tinted text mark. */
+.ladder6 { display: grid; gap: 10px; min-width: 0 }
+.ladder6 h3 { font-size: 16px }
+.ladder6 > p { font-size: 13.5px; max-width: none }
+.levels { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px }
+@media (max-width: 780px) { .levels { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+@media (max-width: 520px) { .levels { grid-template-columns: 1fr } }
+.level { grid-row: span 3; display: grid; grid-template-rows: subgrid; row-gap: 6px; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font-size: 13.5px; line-height: 1.5; background: var(--paper); min-width: 0 }
+.level.now { border-color: var(--ok); box-shadow: 0 0 0 1px var(--ok) }
+.level.next { border-color: var(--signal); box-shadow: 0 0 0 1px var(--signal) }
+.level .lv { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px }
+.level .lv b { font: 600 15px var(--display) }
+.mark { font: 600 11.5px var(--mono); padding: 1px 8px; border-radius: 99px; white-space: nowrap }
+.mark.now { background: var(--ok-soft); color: var(--ok-ink) }
+.mark.next { background: var(--signal-soft); color: var(--signal-ink) }
+
+/* Clips */
+.player { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 12px; min-width: 0 }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap }
+.tabs button { border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-size: 14px; transition: background .2s, border-color .2s;
+  display: inline-flex; align-items: center; min-height: 44px } /* L5 */
+.tabs button[aria-selected="true"] { background: var(--signal); border-color: var(--signal); color: var(--paper); font-weight: 600 }
+video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #0d0f12; display: block }
+.ctrl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px }
+.ctrl .speed { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden }
+.ctrl .speed button { border: 0; background: none; padding: 4px 12px; cursor: pointer; font: 500 13px var(--mono);
+  display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px } /* L5 */
+.ctrl .speed button[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
+.ctrl .speed button:focus-visible { outline-offset: -4px } /* the pill clips (overflow: hidden): draw the ring inside */
+.watch { font-size: 14.5px; line-height: 1.6 }
+.watch b { font-family: var(--display) }
+/* A tab whose clip did not load (or a card whose row has none) holds a message instead of the <video> (TASK-004, -010, -012). */
+.clip-panel { display: grid; gap: 12px; min-width: 0 }
+.clip-row { font: 600 15px var(--display); max-width: none } /* names the row when its card has no clip (TASK-010) */
+.noclip { max-width: none; padding: 28px 16px; text-align: center; background: var(--bg); border-radius: 10px; color: var(--mute); font-size: 14.5px }
+
+/* History */
+/* L6: every entry shares the four columns of .log (id · title + machine line · pill · chevron) by subgrid, so the
+   columns line up row to row; the pill column is as wide as the longest pill. */
+.log { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px 14px }
+.entry { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  grid-column: 1 / -1; display: grid; grid-template-columns: subgrid }
+.entry > button { grid-column: 1 / -1; width: 100%; background: none; border: 0; text-align: left; cursor: pointer; padding: 12px 16px; min-height: 44px;
+  display: grid; grid-template-columns: subgrid; row-gap: 6px; align-items: center }
+.entry .fold-body { grid-column: 2 / -1 }
+.entry > button > .pill { justify-self: start } /* the pill keeps its own width; the column's left edge is shared */
+.entry .id { white-space: nowrap }
+.entry > button:hover { background: var(--bg) }
+.entry .id { font: 600 13px var(--mono); color: var(--signal) }
+.entry .what { min-width: 0 }
+.entry .what b { font-family: var(--display); font-size: 16px; display: block; line-height: 1.35 }
+.entry .what span { font-size: 13px; color: var(--mute) }
+.entry .chev { transition: transform .2s; color: var(--mute); font: 16px var(--mono) }
+.entry.open .chev { transform: rotate(90deg) }
+.entry .body { padding: 0 16px 16px 0; display: grid; gap: 10px; font-size: 14.5px }
+.entry .body ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+.entry .body ul.items { list-style: none; padding-left: 0 }
+.entry .items li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px }
+/* Phone: id on its own row, then title, then pill, chevron at the right; the body under all of it. */
+@media (max-width: 600px) {
+  .log { grid-template-columns: minmax(0, 1fr) auto }
+  .entry > button > :nth-child(-n+3) { grid-column: 1 }
+  .entry > button > .chev { grid-column: 2; grid-row: 1 / span 3 }
+  .entry > button > .pill { justify-self: start }
+  .entry .fold-body { grid-column: 1 / -1 }
+  .entry .body { padding-left: 16px } }
+.pill { display: inline-block; font: 600 12px var(--mono); padding: 1px 8px; border-radius: 99px; white-space: nowrap }
+.pill.ok { background: var(--ok-soft); color: var(--ok-ink) } .pill.bad { background: var(--bad-soft); color: var(--bad-ink) } .pill.part { background: var(--review-soft); color: var(--review-ink) } /* L4 */
+
+/* Compare */
+.cmp { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 14px; min-width: 0 }
+.pick { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center }
+.pick select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer }
+.pick .vs { font: 600 13px var(--mono); color: var(--mute) }
+.cmp .scroll { overflow-x: auto }
+.cmp table { border-collapse: collapse; width: 100%; min-width: 460px; font-size: 14px }
+.cmp th, .cmp td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+.cmp th { font-weight: 500; color: var(--mute); width: 30% }
+.cmp td { font-family: var(--mono); font-variant-numeric: tabular-nums; width: 35%; transition: background .3s }
+.cmp td.win { background: var(--ok-soft); color: var(--ok-ink); font-weight: 600 } /* L4 */
+.cmp td.who { font-family: var(--display) }
+.cmp-item { display: grid; gap: 10px; min-width: 0 }
+.cmp-item h3 { font-size: 16px }
+.nocommon { font-size: 14.5px; max-width: none }
+/* The two Mantine Selects, in the reference's look (old .pick select rule) and 44 px tall (L5). */
+.pick-input { --input-height: 44px; --input-bg: var(--bg); --input-bd: var(--line); --input-color: var(--ink);
+  min-height: 44px; border-radius: 8px; font-size: 16px; cursor: pointer; background: var(--bg); border-color: var(--line); color: var(--ink) }
+.pick-dropdown { background: var(--paper); border: 1px solid var(--line); color: var(--ink) }
+.pick-option { min-height: 44px; display: flex; align-items: center; font-size: 14.5px; color: var(--ink) }
+.pick-option:hover, .pick-option[data-combobox-selected] { background: var(--bg) }
+.pick-option[data-checked] { background: var(--signal-soft); color: var(--signal-ink); font-weight: 600 }
+.cmp tr:last-child th, .cmp tr:last-child td { border-bottom: 0 }
+@media (max-width: 520px) { .pick { grid-template-columns: minmax(0, 1fr) } .pick .vs { display: none } }
+.legend4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; font-size: 13.5px; color: var(--mute) }
+.legend4 b { color: var(--ink); font-family: var(--mono); margin-right: 6px }
+@media (max-width: 600px) { .legend4 { grid-template-columns: 1fr } }
+
+/* Behind the scenes: folded */
+details.fold { background: var(--paper); border: 1px solid var(--line); border-radius: 12px }
+details.fold > summary { cursor: pointer; list-style: none; padding: 14px 18px; display: flex; justify-content: space-between; gap: 12px; align-items: center; font: 600 17px var(--display) }
+details.fold > summary::-webkit-details-marker { display: none }
+details.fold > summary::after { content: "+"; font: 400 22px var(--mono); color: var(--mute); transition: transform .2s }
+details.fold[open] > summary::after { transform: rotate(45deg) }
+details.fold > summary small { font: 400 13px var(--body); color: var(--mute); margin-left: auto; text-align: right }
+details.fold > .in { padding: 0 18px 18px; display: grid; gap: 14px }
+.folds { display: grid; gap: 10px }
+.bars { display: grid; gap: 12px }
+.bar { display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 12px; align-items: center; font-size: 14px }
+.track { height: 22px; background: var(--bg); border-radius: 4px; overflow: hidden; display: flex }
+.track i { display: block; height: 100% }
+.track .sys { background: var(--signal) } .track .tools { background: var(--signal-soft); border-left: 1px solid var(--signal) }
+.track .inj { background: var(--review-soft); border-left: 1px solid var(--review) } .track .card { background: var(--ok) }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--mute) }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px }
+@media (max-width: 600px) { .bar { grid-template-columns: 1fr 72px } .bar .lbl { grid-column: 1 / -1 } }
+.chart { position: relative }
+.chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; cursor: crosshair }
+.chart text { font: 11px var(--mono); fill: var(--mute) }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)) }
+.rounds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+/* L6 (TASK-005): the round cards share 3 rows (title · what it did · review); finding cards 2; step cards 4. */
+.round { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 8px; font-size: 14.5px }
+.round .rev { background: var(--review-soft); border-radius: 8px; padding: 8px 10px; font-size: 14px; line-height: 1.55 }
+.round .rev b { color: var(--review-ink) } /* L4 */
+.round .rev.ok { background: var(--ok-soft); color: var(--ok-ink); font-weight: 600 }
+@media (max-width: 760px) { .rounds { grid-template-columns: 1fr } }
+.find { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+.find div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 6px; font-size: 14.5px }
+.find b { font-family: var(--display); font-size: 16px }
+@media (max-width: 680px) { .find { grid-template-columns: 1fr } }
+ul.guards { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 14.5px }
+ul.guards li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px }
+ul.guards .k { font: 600 13px var(--mono); color: var(--signal); padding-top: 2px }
+/* Spec and budget plan */
+.spec { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; min-width: 0 }
+.spec dl { margin: 0; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 16px; font-size: 14.5px }
+.spec dt { color: var(--mute) } .spec dd { margin: 0; min-width: 0 }
+@media (max-width: 560px) { .spec dl { grid-template-columns: 1fr; gap: 2px } .spec dd { margin-bottom: 8px } }
+.use { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-size: 14.5px; position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 4 }
+.use label { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+.use input[type=range] { width: 170px; accent-color: var(--signal) }
+.use .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden }
+.use .seg button { border: 0; background: none; padding: 4px 12px; cursor: pointer; font: 500 13px var(--mono) }
+.use .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
+/* TASK-005: the Mantine Slider and SegmentedControl in the reference's look, each with a 44 px tap area (L5). */
+.use .use-item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+.hrs { width: 170px; min-height: 44px; justify-content: center; --slider-color: var(--signal) }
+/* TEST-001 DEF-2: Mantine binds its press/drag handler to the track container, 16 px tall and inset by the root's 8 px
+   side padding. Make it the whole 44 px tall box, and let a transparent layer reach over that padding, so a tap anywhere
+   in the 170 × 44 box sets the value (x is clamped by Mantine). The 8 px track and 16 px thumb look as before; the thumb
+   (z-index 3) stays above the layer for dragging. */
+.hrs-hit { height: 44px; position: relative }
+.hrs-hit::after { content: ""; position: absolute; inset: 0 calc(var(--slider-size) * -1) }
+.hrs-track::before { background: var(--line) }
+.hrs-bar { background: var(--signal) }
+.hrs-thumb { background: var(--paper); border-color: var(--signal); color: var(--signal) }
+.use .seg { padding: 0; background: transparent; --sc-radius: 99px }
+.seg-ind { background: var(--ink); border-radius: 99px }
+.seg-label { min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; padding: 0 14px; font: 500 13px var(--mono); color: var(--ink) }
+.seg-label[data-active] { color: var(--paper) }
+.rate { font-size: 13px; color: var(--mute); margin-top: -8px }
+.use { padding-block: 10px; box-shadow: 0 8px 16px -14px var(--ink) }
+.ladder { display: grid; gap: 12px }
+.tier { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px 22px; position: relative }
+.tier.now { border-color: var(--ok); box-shadow: 0 0 0 1px var(--ok) } /* L6: a ring, not a 2 px border, so its columns start where the other tiers' do */
+.tier.ref { background: var(--bg); border-style: dashed }
+@media (max-width: 760px) { .tier { grid-template-columns: 1fr } }
+.tier .head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline }
+.tier .head h3 { font-size: 20px }
+.tier .head .budget { font: 600 15px var(--mono); color: var(--signal) }
+.tier .box { display: grid; gap: 10px; align-content: start; font-size: 14.5px; min-width: 0 }
+.tier .lab { font: 500 12px var(--mono); letter-spacing: .06em; color: var(--mute); text-transform: uppercase }
+.tier ul { margin: 0; padding-left: 18px; display: grid; gap: 3px }
+.memo { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; display: flex }
+.memo i { display: block; height: 100%; background: var(--signal) } .memo i.b { background: var(--signal-soft) }
+.roles { display: flex; flex-wrap: wrap; gap: 6px }
+.role { font-size: 13px; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line) }
+.role.done { background: var(--ok-soft); color: var(--ok-ink); border-color: transparent; font-weight: 600 } /* L4 */
+.role.todo { background: var(--review-soft); color: var(--review-ink); border-color: transparent } /* L4 */
+.role.hold { color: var(--mute); border-style: dashed }
+.money { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px; align-content: start }
+.money .v { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: 600 }
+.money .sep { grid-column: 1 / -1; border-top: 1px solid var(--line); margin: 2px 0 }
+.money .pay { color: var(--ok) } .money .nopay { color: var(--bad) } .money .meh { color: var(--review) }
+.tier .note { grid-column: 1 / -1; font-size: 13.5px; color: var(--mute) }
+.steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+@media (max-width: 680px) { .steps { grid-template-columns: 1fr } }
+.steps > div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 6px; font-size: 14.5px }
+.steps b { font-family: var(--display); font-size: 16px }
+.caveat { font-size: 13.5px; color: var(--mute); display: grid; gap: 4px; margin: 0; padding-left: 18px }
+footer { font-size: 13px; color: var(--mute); border-top: 1px solid var(--line); padding-top: 18px }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+.grow { transform-origin: left center; transition: transform .9s cubic-bezier(.2, .7, .2, 1) }
+.grow.pre { transform: scaleX(0) }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } * { animation: none !important; transition: none !important } .grow.pre { transform: none } }
