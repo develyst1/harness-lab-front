@@ -144,8 +144,16 @@ export interface Page {
   };
   /** pack v3: the เทคนิค section's head and the Thai name of each technique group. */
   techniques: { kicker: string; title: string; intro: string; groups: Record<string, string> };
+  /** pack v3.5/v3.6: plain-language content for readers who are not AI engineers (the เรื่องเล่า section, SPEC-006). */
+  explain: { note?: string; glossary: GlossaryEntry[]; story: StoryChapter[] };
   footer: string;
 }
+
+/** `[term, plain Thai]` or `[term, plain Thai, aliases]`; term and aliases are spelled exactly as the page shows them. */
+export type GlossaryEntry = [string, string] | [string, string, string[]];
+
+/** `[when, title, plain Thai]`, in the order Modio tells the story. */
+export type StoryChapter = [string, string, string];
 
 /** One entry of techniques.json (pack v3.1). The English fields, `evidence` and `date` are for reference only. */
 export interface Technique {

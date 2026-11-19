@@ -41,6 +41,7 @@ const lab = {
       next: { title: "nx", sub: "ns", body: "nb", extraNext: "drop me" },
     },
     techniques: { kicker: "k", title: "t", intro: "i", groups: { harness: "gh", process: "gp" }, extraTech: "drop me" },
+    explain: { note: "NOTE TO THE TEAM", glossary: [["27B", "p1", ["284B"]], ["MTP", "p2"]], story: [["w", "t", "x MTP"]] },
     footer: "f",
   },
   techniques: [{
@@ -80,7 +81,8 @@ const READ = [
     "gauge.title", "gauge.sub", "gauge.note", "gauge.cardMiB", "gauge.comfort", "next.title", "next.sub", "next.body"]
     .map((f) => `page.behind.${f}`),
   "page.techniques.kicker", "page.techniques.title", "page.techniques.intro", "page.techniques.groups",
-  ...["id", "group", "nameTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh", "evidenceTh"].map((f) => `techniques.0.${f}`),
+  "page.explain.story", "page.explain.glossary",
+  ...["id", "group", "nameTh", "whatTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh", "evidenceTh"].map((f) => `techniques.0.${f}`),
   "page.footer",
 ];
 
@@ -107,9 +109,9 @@ describe("toView — the browser gets only what the page shows", () => {
     expect(lost).toEqual([]);
   });
 
-  test("a technique keeps exactly the ten fields the card shows (SPEC-003)", () => {
+  test("a technique keeps exactly the eleven fields the card shows (SPEC-003; whatTh by SPEC-004 § Round 2)", () => {
     expect(Object.keys(view.techniques[0]).sort()).toEqual(
-      ["afterTh", "beforeTh", "evidenceTh", "gainTh", "group", "id", "metricTh", "model", "nameTh", "rows"],
+      ["afterTh", "beforeTh", "evidenceTh", "gainTh", "group", "id", "metricTh", "model", "nameTh", "rows", "whatTh"],
     );
   });
 
@@ -119,12 +121,23 @@ describe("toView — the browser gets only what the page shows", () => {
 
   test("no technique name, `what`, English field, `evidence` or file name reaches the browser (REQ-003 req 5)", () => {
     const json = JSON.stringify(view);
-    expect(['"evidence":', '"what', "Modio's run log", "MODIO-LOG", ".jsonl", '.log"'].filter((s) => json.includes(s)))
+    expect(['"evidence":', '"what":', "Modio's run log", "MODIO-LOG", ".jsonl", '.log"'].filter((s) => json.includes(s)))
       .toEqual([]);
     expect(["EN NAME", "EN WHAT", "EN METRIC", "EN BEFORE", "EN AFTER", "EN GAIN", "2026-11-19"].filter((s) => json.includes(s)))
       .toEqual([]);
     // `"name":` only over the techniques: tiers keep their `name`, which สเปกและงบ shows.
     expect(JSON.stringify(view.techniques)).not.toContain('"name":');
+  });
+
+  test("page.explain keeps exactly story and glossary; its note does not reach the browser (SPEC-006)", () => {
+    expect(Object.keys(view.page.explain).sort()).toEqual(["glossary", "story"]);
+    expect(JSON.stringify(view)).not.toContain("NOTE TO THE TEAM");
+  });
+
+  test("page.explain is a copy: changing the view leaves the back's document alone", () => {
+    expect(view.page.explain.glossary).not.toBe(lab.page.explain.glossary);
+    expect(view.page.explain.glossary[0][2]).not.toBe(lab.page.explain.glossary[0][2]);
+    expect(view.page.explain.story[0]).not.toBe(lab.page.explain.story[0]);
   });
 
   test("a row's mutations: null stays null", () => {

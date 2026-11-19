@@ -63,6 +63,32 @@ button, select { font: inherit; color: inherit }
 .hero { display: grid; gap: 14px }
 .hero .who { font: 500 13px var(--mono); color: var(--mute) }
 
+/* เรื่องเล่า (TASK-026, SPEC-006; ported from the TASK-023 comp A): 7 chapters, when · title · text, on one paper panel. */
+.chapters { list-style: none; margin: 0; padding: 4px 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px }
+.chapter { display: grid; grid-template-columns: 88px 190px minmax(0, 1fr); gap: 4px 18px; padding: 14px 0; border-top: 1px solid var(--line); align-items: baseline }
+.chapter:first-child { border-top: 0 }
+.chapter .when { font: 500 12.5px var(--mono); color: var(--mute) }
+.chapter .ttl { font: 600 16px/1.4 var(--display) }
+.chapter .txt { display: grid; gap: 8px; font-size: 15px; line-height: 1.75; min-width: 0 }
+.chapter .txt p { max-width: none }
+@media (max-width: 760px) { .chapters { padding: 4px 16px } .chapter { grid-template-columns: minmax(0, 1fr); gap: 2px } }
+/* A term: a real button inside the sentence, only as wide as its word, dotted-underlined, adding no line height, so the
+   lines stay even (comp A). AC-7 (SPEC-006 § Amendment, REQ-006 Q3 a): a tap that misses every word opens the nearest
+   term within 22 px (Story.tsx, nearestTerm), so the space around a term is not dead and never opens a farther one. */
+button.term { font: inherit; line-height: inherit; color: inherit; background: none; border: 0; margin: 0; padding: 0; cursor: pointer;
+  display: inline; vertical-align: baseline }
+button.term > span { text-decoration: underline dotted var(--signal); text-decoration-thickness: 2px; text-underline-offset: 5px; border-radius: 4px }
+button.term:hover > span { color: var(--signal-ink) }
+button.term[aria-expanded="true"] > span { background: var(--signal-soft); color: var(--signal-ink); text-decoration-style: solid } /* L4 */
+.gloss { background: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 14.5px; line-height: 1.6 }
+.gloss b { font-family: var(--display); margin-right: 6px }
+/* คำศัพท์: every glossary entry, aliases after the term; each dt is an anchor (term-<n>). Open by default (comp A). */
+.glossary-fold { margin-top: 4px }
+dl.glossary { margin: 0; display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr); gap: 6px 16px; font-size: 14px }
+dl.glossary dt { font-weight: 600; overflow-wrap: anywhere }
+dl.glossary dd { margin: 0; color: var(--mute) }
+@media (max-width: 560px) { dl.glossary { grid-template-columns: minmax(0, 1fr); gap: 2px } dl.glossary dd { margin-bottom: 8px } }
+
 /* The answer */
 .answer { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 18px }
 .answer .verdict { font: 600 clamp(20px, 2.8vw, 26px)/1.35 var(--display); max-width: none } /* L2 */
@@ -198,13 +224,13 @@ video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px;
 .cmp tr.pt th b { font: 600 13px var(--mono); color: var(--ink); margin-right: 6px }
 .cmp tr.pt td { vertical-align: middle }
 
-/* เทคนิค (TASK-015, SPEC-003): pack order, 2 columns from 900 px. L6: every card spans the 7 rows of .techs by subgrid
-   (id + group · name · model · metric · before | after · gain · evidence), so each kind of row starts at the same height
-   in sibling cards. Text wraps, never cut. */
+/* เทคนิค (TASK-015, SPEC-003): pack order, 2 columns from 900 px. L6: every card spans the 8 rows of .techs by subgrid
+   (id + group · name · what it does (TASK-021) · model · metric · before | after · gain · evidence), so each kind of row
+   starts at the same height in sibling cards. Text wraps, never cut. */
 .techs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
 @media (max-width: 899px) { .techs { grid-template-columns: minmax(0, 1fr) } }
 .tech { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0;
-  display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 8px; font-size: 14.5px; line-height: 1.55; overflow-wrap: break-word }
+  display: grid; grid-row: span 8; grid-template-rows: subgrid; row-gap: 8px; font-size: 14.5px; line-height: 1.55; overflow-wrap: break-word }
 .tech p { max-width: none }
 .tech-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px }
 .tech .tid { font: 600 13px var(--mono); color: var(--signal-ink) }

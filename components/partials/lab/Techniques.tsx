@@ -2,9 +2,10 @@ import { groupName } from "@/lib/lab/techniques";
 import type { Page, Technique } from "@/lib/lab/types";
 
 // เทคนิค (SPEC-003 § Front): head from page.json → techniques, then one card per techniques.json entry in pack order.
-// Every card spans the same 7 rows of .techs (subgrid, SPEC-001 L6): id + group · name · model · metric · before | after ·
-// gain · evidence. The four small labels and the link text are UI words [SA-decided], REQ-003 Q4. Technique text is
-// Modio's (the …Th fields); the browser gets no other (lib/lab/view.ts).
+// Every card spans the same 8 rows of .techs (subgrid, SPEC-001 L6): id + group · name · what it does · model · metric ·
+// before | after · gain · evidence. The small labels and the link text are UI words (REQ-003 Q4 [SA-decided]; "ทำอะไร"
+// [PM-decided], SPEC-004 § Round 2). Technique text is Modio's (the …Th fields); the browser gets no other
+// (lib/lab/view.ts).
 export function Techniques({
   techniques,
   head,
@@ -27,6 +28,10 @@ export function Techniques({
               <span className="group">{groupName(head.groups, t.group)}</span>
             </div>
             <h3>{t.nameTh}</h3>
+            <p className="kv">
+              <span className="k">ทำอะไร</span>
+              <span>{t.whatTh}</span>
+            </p>
             <p className="kv">
               <span className="k">โมเดล</span>
               <span>{t.model}</span>

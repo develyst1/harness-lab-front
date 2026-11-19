@@ -13,10 +13,11 @@ import { Hero } from "./Hero";
 import { History } from "./History";
 import { Nav, STOP_IDS } from "./Nav";
 import { Plan } from "./Plan";
+import { Story } from "./Story";
 import { Techniques } from "./Techniques";
 
-/** The whole page, drawn from the back's one document (pack v3.1), in the order of REQ-001 req 1; เทคนิค between
- * เทียบเอง and สเปกและงบ (SPEC-003). */
+/** The whole page, drawn from the back's one document (pack v3.6), in the order of REQ-001 req 1; เรื่องเล่า between
+ * the hero and คำตอบ (SPEC-006), เทคนิค between เทียบเอง and สเปกและงบ (SPEC-003). */
 export function LabContent({ runs, tiers, meta, page, techniques }: LabData) {
   const tabs = useMemo(() => clipTabs(runs), [runs]);
   // ดูคลิป: the selected row (plus its tab when it has one), the speed, the play asks and the clips that failed to load
@@ -80,6 +81,7 @@ export function LabContent({ runs, tiers, meta, page, techniques }: LabData) {
       <Nav active={active} />
       <main className="wrap">
         <Hero hero={page.hero} />
+        <Story explain={page.explain} />
         <Answer runs={runs} page={page} onPlay={play} />
         <Clips
           tabs={tabs}

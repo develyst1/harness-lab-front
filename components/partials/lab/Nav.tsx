@@ -1,6 +1,7 @@
-// The sticky bar of seven stops (reference/index.html lines 218–221; เทคนิค added by SPEC-003). `active` = the section in view (scroll-spy,
+// The sticky bar of eight stops (reference/index.html lines 218–221; เทคนิค added by SPEC-003, เรื่องเล่า first by SPEC-006). `active` = the section in view (scroll-spy,
 // reference lines 593–600, run by LabContent).
 const STOPS = [
+  ["story", "เรื่องเล่า"],
   ["answer", "คำตอบ"],
   ["clips", "ดูคลิป"],
   ["history", "ประวัติ"],

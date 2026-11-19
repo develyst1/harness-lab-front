@@ -5,8 +5,9 @@ import type { Item, LabData, Meta, Page, Run, Technique, Tier } from "./types";
 // served HTML, shown or not, so `app/page.tsx` hands `LabContent` this copy instead of the back's whole document.
 // A whitelist, not a blacklist: a new pack field stays on the server until a component reads it and it is added here.
 // Dropped on purpose (no component reads them): Run.rent, Run.isoDate · Item.turns, .result, .newFails, .review ·
-// Meta.version, .asOf, .note · Page.version, Page.behind.loop.chartNote · Technique.name, .what, .whatTh and the English
-// fields (.metric, .before, .after, .gain), .evidence, .date (SPEC-003: only the Thai text, `rows` and `evidenceTh`).
+// Meta.version, .asOf, .note · Page.version, Page.behind.loop.chartNote · Technique.name, .what and the English fields
+// (.metric, .before, .after, .gain), .evidence, .date (SPEC-003: only the Thai text, `rows` and `evidenceTh`; `.whatTh`
+// is sent since SPEC-004 § Round 2, REQ-004 AC-11) · Page.explain.note (SPEC-006: the story and the glossary are sent).
 // Their types stay in types.ts, so the result is returned as LabData by one cast below; view.test.ts lists the fields
 // that must survive.
 
@@ -23,8 +24,8 @@ const ITEM = ["item", "label", "minutes", "cap", "timedOut", "compactions", "vra
 const TIER = ["id", "now", "ref", "name", "budget", "buy", "machine", "mem", "use", "models", "roles", "watt", "rentUsd",
   "rentName", "note"] as const satisfies readonly (keyof Tier)[];
 const META = ["spentUsd", "capUsd", "usdThb"] as const satisfies readonly (keyof Meta)[];
-const TECHNIQUE = ["id", "group", "nameTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh", "evidenceTh"] as const satisfies
-  readonly (keyof Technique)[];
+const TECHNIQUE = ["id", "group", "nameTh", "whatTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh",
+  "evidenceTh"] as const satisfies readonly (keyof Technique)[];
 
 const item = (i: Item) => ({
   ...pick(i, ITEM),
@@ -65,6 +66,10 @@ const page = (p: Page) => {
       next: pick(b.next, ["title", "sub", "body"]),
     },
     techniques: { ...pick(p.techniques, ["kicker", "title", "intro"]), groups: { ...p.techniques.groups } },
+    explain: {
+      story: p.explain.story.map((c) => [...c]),
+      glossary: p.explain.glossary.map((g) => (g[2] ? [g[0], g[1], [...g[2]]] : [g[0], g[1]])),
+    },
     footer: p.footer,
   };
 };

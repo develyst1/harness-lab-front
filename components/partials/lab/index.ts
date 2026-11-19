@@ -9,4 +9,5 @@ export { LabContent } from "./LabContent";
 export { Ladder } from "./Ladder";
 export { Nav } from "./Nav";
 export { Plan } from "./Plan";
+export { Story } from "./Story";
 export { Techniques } from "./Techniques";
