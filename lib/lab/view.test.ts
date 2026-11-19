@@ -2,8 +2,9 @@ import { describe, expect, test } from "bun:test";
 import type { LabData } from "./types";
 import { toView } from "./view";
 
-// A pack-v2-shaped document with every field the pack carries (README § runs.json v2, Q4 table, meta.json, page.json),
-// plus made-up extra fields. Test data only; R5·B4's `review` stands in for the text that must not reach the browser.
+// A pack-v3.1-shaped document with every field the pack carries (README § runs.json v2, Q4 table, meta.json, page.json,
+// § Pack v3.1 techniques.json), plus made-up extra fields. Test data only; R5·B4's `review` and the technique's English
+// fields and `evidence` stand in for the text that must not reach the browser.
 const lab = {
   runs: [{
     id: "R5", rent: 5, date: "18 พ.ย.", isoDate: "2026-11-18", gpu: "A40 / A6000", model: "M", quant: "Q8", ctx: 128,
@@ -39,8 +40,15 @@ const lab = {
       findings: [["f", "d"]], guards: [["g", "d"]], guardsNote: "gn",
       next: { title: "nx", sub: "ns", body: "nb", extraNext: "drop me" },
     },
+    techniques: { kicker: "k", title: "t", intro: "i", groups: { harness: "gh", process: "gp" }, extraTech: "drop me" },
     footer: "f",
   },
+  techniques: [{
+    id: "T07", group: "harness", name: "EN NAME", nameTh: "nth", what: "EN WHAT", whatTh: "WHAT TH", model: "mdl",
+    metric: "EN METRIC", metricTh: "mth", before: "EN BEFORE", beforeTh: "bth", after: "EN AFTER", afterTh: "ath",
+    gain: "EN GAIN", gainTh: "gth", evidence: "Modio's run log", evidenceTh: "eth", rows: ["R99", "R5"], date: "2026-11-19",
+    extraTechnique: "drop me",
+  }],
 } as unknown as LabData;
 
 const view = toView(lab);
@@ -71,6 +79,8 @@ const READ = [
     "loop.proved", "loop.rounds.0.title", "loop.rounds.0.did", "loop.rounds.0.review", "loop.rounds.0.accepted",
     "gauge.title", "gauge.sub", "gauge.note", "gauge.cardMiB", "gauge.comfort", "next.title", "next.sub", "next.body"]
     .map((f) => `page.behind.${f}`),
+  "page.techniques.kicker", "page.techniques.title", "page.techniques.intro", "page.techniques.groups",
+  ...["id", "group", "nameTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh", "evidenceTh"].map((f) => `techniques.0.${f}`),
   "page.footer",
 ];
 
@@ -95,6 +105,26 @@ describe("toView — the browser gets only what the page shows", () => {
   test("every field a component reads survives, unchanged", () => {
     const lost = READ.filter((p) => JSON.stringify(at(view, p)) !== JSON.stringify(at(lab, p)) || at(view, p) === undefined);
     expect(lost).toEqual([]);
+  });
+
+  test("a technique keeps exactly the ten fields the card shows (SPEC-003)", () => {
+    expect(Object.keys(view.techniques[0]).sort()).toEqual(
+      ["afterTh", "beforeTh", "evidenceTh", "gainTh", "group", "id", "metricTh", "model", "nameTh", "rows"],
+    );
+  });
+
+  test("a technique's rows keep only ids that have a row on the page", () => {
+    expect(view.techniques[0].rows).toEqual(["R5"]);
+  });
+
+  test("no technique name, `what`, English field, `evidence` or file name reaches the browser (REQ-003 req 5)", () => {
+    const json = JSON.stringify(view);
+    expect(['"evidence":', '"what', "Modio's run log", "MODIO-LOG", ".jsonl", '.log"'].filter((s) => json.includes(s)))
+      .toEqual([]);
+    expect(["EN NAME", "EN WHAT", "EN METRIC", "EN BEFORE", "EN AFTER", "EN GAIN", "2026-11-19"].filter((s) => json.includes(s)))
+      .toEqual([]);
+    // `"name":` only over the techniques: tiers keep their `name`, which สเปกและงบ shows.
+    expect(JSON.stringify(view.techniques)).not.toContain('"name":');
   });
 
   test("a row's mutations: null stays null", () => {

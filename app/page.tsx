@@ -7,13 +7,14 @@ export const dynamic = "force-dynamic";
 
 const isObject = (v: unknown): v is object => typeof v === "object" && v !== null && !Array.isArray(v);
 
-// Pack v2 on: runs and tiers arrays, meta and page objects — all four required (SPEC-001 § Pack v2).
+// Pack v3 on: runs, tiers and techniques arrays, meta and page objects — all five required (SPEC-003 § Contract).
 const isLabData = (d: unknown): d is LabData =>
   isObject(d) &&
   Array.isArray((d as LabData).runs) &&
   Array.isArray((d as LabData).tiers) &&
   isObject((d as LabData).meta) &&
-  isObject((d as LabData).page);
+  isObject((d as LabData).page) &&
+  Array.isArray((d as LabData).techniques);
 
 async function loadLab(): Promise<LabData | null> {
   const backUrl = process.env.BACK_URL || "http://127.0.0.1:4101";
@@ -21,8 +22,8 @@ async function loadLab(): Promise<LabData | null> {
     const res = await fetch(`${backUrl}/api/lab`, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(`GET /api/lab answered ${res.status}`);
     const body: unknown = await res.json();
-    if (!isLabData(body)) throw new Error("GET /api/lab body lacks runs/tiers arrays or meta/page objects");
-    return { runs: body.runs, tiers: body.tiers, meta: body.meta, page: body.page };
+    if (!isLabData(body)) throw new Error("GET /api/lab body lacks runs/tiers/techniques arrays or meta/page objects");
+    return { runs: body.runs, tiers: body.tiers, meta: body.meta, page: body.page, techniques: body.techniques };
   } catch (err) {
     // The cause goes to the server log only; the visitor gets the load-error wording (REQ-001 AC-10).
     console.error("[harness-lab] could not load the experiment data:", err);
@@ -44,5 +45,5 @@ export default async function Page() {
   }
   // Only the fields the page shows reach the browser: every prop of a client component is serialised into the HTML.
   const view = toView(lab);
-  return <LabContent runs={view.runs} tiers={view.tiers} meta={view.meta} page={view.page} />;
+  return <LabContent runs={view.runs} tiers={view.tiers} meta={view.meta} page={view.page} techniques={view.techniques} />;
 }

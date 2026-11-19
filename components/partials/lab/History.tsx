@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { Collapse } from "@mantine/core";
 import type { Page, Run } from "@/lib/lab/types";
 import { Dots } from "./Answer";
 
 // ประวัติ: layout of reference/index.html lines 257–262, entries after its script at lines 505–517. Every entry shares
-// the columns of .log (subgrid, SPEC-001 L6), so ids, titles, pills and chevrons line up row to row.
+// the columns of .log (subgrid, SPEC-001 L6), so ids, titles, pills and chevrons line up row to row. Each entry is
+// `#run-<id>`; which ones are open lives in LabContent, so a เทคนิค evidence link can open one (SPEC-003).
 
 /** The machine line of reference line 510; "หัวหน้าตรวจ" reads "Tech Lead ตรวจ" (REQ-001 Q12 (5), the PM). */
 const machine = (r: Run) =>
   `${r.gpu} · ${r.model} ${r.quant} · ความจำ ${r.ctx}k${r.card ? " · การ์ดความรู้ทีม" : ""}${r.loop ? " · Tech Lead ตรวจ" : ""} · $${r.cost.toFixed(2)}`;
 
-export function History({ runs, history }: { runs: Run[]; history: Page["history"] }) {
+export function History({
+  runs,
+  history,
+  open,
+  onToggle,
+}: {
+  runs: Run[];
+  history: Page["history"];
+  open: ReadonlySet<string>;
+  onToggle: (rowId: string) => void;
+}) {
   return (
     <section id="history">
       <div className="run">{history.kicker}</div>
@@ -20,19 +30,18 @@ export function History({ runs, history }: { runs: Run[]; history: Page["history
       <p className="mute">{history.intro}</p>
       <div className="log">
         {runs.map((r) => (
-          <Entry key={r.id} row={r} />
+          <Entry key={r.id} row={r} open={open.has(r.id)} onToggle={() => onToggle(r.id)} />
         ))}
       </div>
     </section>
   );
 }
 
-function Entry({ row }: { row: Run }) {
-  const [open, setOpen] = useState(false);
+function Entry({ row, open, onToggle }: { row: Run; open: boolean; onToggle: () => void }) {
   const bodyId = `b-${row.id}`;
   return (
-    <div className={open ? "entry open" : "entry"}>
-      <button type="button" aria-expanded={open} aria-controls={bodyId} onClick={() => setOpen((o) => !o)}>
+    <div id={`run-${row.id}`} className={open ? "entry open" : "entry"}>
+      <button type="button" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
         <span className="id">{`${row.id} · ${row.date}`}</span>
         <span className="what">
           <b>{row.title}</b>

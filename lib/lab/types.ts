@@ -1,5 +1,5 @@
-// Shapes of Modio's data pack v2 as served by `GET /api/lab` (SPEC-001 § Pack v2; pack README § runs.json v2,
-// § meta.json, § page.json and the Q4 item table). Field names are the pack's, never renamed.
+// Shapes of Modio's data pack v3.1 as served by `GET /api/lab` (SPEC-001 § Pack v2, SPEC-003 § Contract; pack README
+// § runs.json v2, § meta.json, § page.json, the Q4 item table and § Pack v3.1). Field names are the pack's, never renamed.
 
 export type Verdict = "ok" | "part" | "bad";
 
@@ -142,13 +142,40 @@ export interface Page {
     guardsNote: string;
     next: { title: string; sub: string; body: string };
   };
+  /** pack v3: the เทคนิค section's head and the Thai name of each technique group. */
+  techniques: { kicker: string; title: string; intro: string; groups: Record<string, string> };
   footer: string;
 }
 
-/** The body of `GET /api/lab` from pack v2 on. Keys the front does not know are ignored. */
+/** One entry of techniques.json (pack v3.1). The English fields, `evidence` and `date` are for reference only. */
+export interface Technique {
+  id: string;
+  group: string;
+  name: string;
+  nameTh: string;
+  what: string;
+  whatTh: string;
+  model: string;
+  metric: string;
+  metricTh: string;
+  before: string;
+  beforeTh: string;
+  after: string;
+  afterTh: string;
+  gain: string;
+  gainTh: string;
+  evidence: string;
+  evidenceTh: string;
+  /** Exact runs.json row ids, `[]` when the technique has no exam row. */
+  rows?: string[];
+  date: string;
+}
+
+/** The body of `GET /api/lab` from pack v3 on. Keys the front does not know are ignored. */
 export interface LabData {
   runs: Run[];
   tiers: Tier[];
   meta: Meta;
   page: Page;
+  techniques: Technique[];
 }

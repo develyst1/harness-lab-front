@@ -1,11 +1,14 @@
-import type { Item, LabData, Meta, Page, Run, Tier } from "./types";
+import { evidenceRows } from "./techniques";
+import type { Item, LabData, Meta, Page, Run, Technique, Tier } from "./types";
 
 // The page passes the browser only what it shows (TASK-007). Next serialises every prop of a client component into the
 // served HTML, shown or not, so `app/page.tsx` hands `LabContent` this copy instead of the back's whole document.
 // A whitelist, not a blacklist: a new pack field stays on the server until a component reads it and it is added here.
 // Dropped on purpose (no component reads them): Run.rent, Run.isoDate · Item.turns, .result, .newFails, .review ·
-// Meta.version, .asOf, .note · Page.version, Page.behind.loop.chartNote. Their types stay in types.ts, so the result is
-// returned as LabData by one cast below; view.test.ts lists the fields that must survive.
+// Meta.version, .asOf, .note · Page.version, Page.behind.loop.chartNote · Technique.name, .what, .whatTh and the English
+// fields (.metric, .before, .after, .gain), .evidence, .date (SPEC-003: only the Thai text, `rows` and `evidenceTh`).
+// Their types stay in types.ts, so the result is returned as LabData by one cast below; view.test.ts lists the fields
+// that must survive.
 
 function pick<T extends object, K extends keyof T>(o: T, keys: readonly K[]): Pick<T, K> {
   const out = {} as Pick<T, K>;
@@ -20,6 +23,8 @@ const ITEM = ["item", "label", "minutes", "cap", "timedOut", "compactions", "vra
 const TIER = ["id", "now", "ref", "name", "budget", "buy", "machine", "mem", "use", "models", "roles", "watt", "rentUsd",
   "rentName", "note"] as const satisfies readonly (keyof Tier)[];
 const META = ["spentUsd", "capUsd", "usdThb"] as const satisfies readonly (keyof Meta)[];
+const TECHNIQUE = ["id", "group", "nameTh", "model", "metricTh", "beforeTh", "afterTh", "gainTh", "evidenceTh"] as const satisfies
+  readonly (keyof Technique)[];
 
 const item = (i: Item) => ({
   ...pick(i, ITEM),
@@ -59,6 +64,7 @@ const page = (p: Page) => {
       gauge: pick(b.gauge, ["title", "sub", "note", "cardMiB", "comfort"]),
       next: pick(b.next, ["title", "sub", "body"]),
     },
+    techniques: { ...pick(p.techniques, ["kicker", "title", "intro"]), groups: { ...p.techniques.groups } },
     footer: p.footer,
   };
 };
@@ -70,5 +76,6 @@ export function toView(lab: LabData): LabData {
     tiers: lab.tiers.map((t) => pick(t, TIER)),
     meta: pick(lab.meta, META),
     page: page(lab.page),
+    techniques: lab.techniques.map((t) => ({ ...pick(t, TECHNIQUE), rows: evidenceRows(t.rows, lab.runs) })),
   } as unknown as LabData;
 }
