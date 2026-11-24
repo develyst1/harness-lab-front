@@ -1,6 +1,8 @@
 "use client";
 
+import { IconPlayerPlay, IconPlayerPlayFilled } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
+import { Pill } from "@/components/partials/site/RunBits";
 import { SPEEDS, type ClipTab, type ClipView } from "@/lib/lab/clips";
 import type { Page } from "@/lib/lab/types";
 
@@ -47,24 +49,9 @@ export function Clips({ tabs, view, clips, onSelect, onSpeed, onFailed, titleAs:
     <section id="clips">
       <div className="run">{clips.kicker}</div>
       <Title className={Title === "h1" ? "as-h2" : undefined}>{clips.title}</Title>
-      <div className="player">
-        {tabs.length > 0 && (
-          <div className="tabs" role="tablist" aria-label="เลือกคลิป">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                id={`t-${t.key}`}
-                aria-selected={t.key === selectedKey}
-                aria-controls="clip-panel"
-                onClick={() => onSelect(t.key)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* TASK-057 (SPEC-013 row 6): the player first, so it is in a phone's first screen; the clip list follows as icon
+          rows (beside the player at ≥ 900 px). The DOM order is the visual order, so the keyboard meets them the same way. */}
+      <div className={`player${tabs.length > 1 ? " with-list" : ""}`}>
         <div id="clip-panel" role="tabpanel" aria-labelledby={view.labelledBy} className="clip-panel">
           {view.rowLine && (
             <p className="clip-row" id="clip-row">
@@ -103,6 +90,34 @@ export function Clips({ tabs, view, clips, onSelect, onSpeed, onFailed, titleAs:
           )}
           {view.watch && <p className="watch">{boldOnly(view.watch)}</p>}
         </div>
+        {tabs.length > 0 && (
+          <div className="tabs clip-list" role="tablist" aria-label="เลือกคลิป" aria-orientation="vertical">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                id={`t-${t.key}`}
+                aria-selected={t.key === selectedKey}
+                aria-controls="clip-panel"
+                onClick={() => onSelect(t.key)}
+              >
+                {t.key === selectedKey ? (
+                  <IconPlayerPlayFilled size={18} aria-hidden="true" />
+                ) : (
+                  <IconPlayerPlay size={18} stroke={1.75} aria-hidden="true" />
+                )}
+                {/* TASK-072 R4 (DEF-4, the owner): the title takes the row's whole width, at most 2 lines then "…" (the
+                    whole title stays in the DOM and in `title`), and the run's verdict pill sits under it, as ประวัติ
+                    shows it, so a viewer knows what a clip will show before pressing it (critique A, P1). */}
+                <span className="clip-t">
+                  <span className="clip-name" title={t.label}>{t.label}</span>
+                  <Pill run={t.row} />
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <p className="mute" style={{ fontSize: 14 }}>
         {clips.note}

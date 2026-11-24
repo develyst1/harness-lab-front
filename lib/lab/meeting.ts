@@ -95,4 +95,7 @@ export const MEETING_WORDS = {
   findings: "สิ่งที่พบ", // PROPOSED
   next: "จะลองต่อ", // PROPOSED
   legend: "— = ไม่มีรอบไหนจดจบ (ถูกตัด) หรือยังไม่ได้รัน", // decided, word for word (REQ-010 req 2)
+  // The study page's footer line in place of the site footer (whose reason is the runs'; the meetings are synthetic).
+  // Modio, REQ-010 review A1 fix 1, word for word (REQ-012 § Modio's text fixes 3; TASK-058 Q3: Footer.tsx shows it).
+  logsNote: "บันทึกฉบับเต็มและคำตรวจทุกรอบเก็บไว้บนเครื่องของผมเท่านั้น หน้านี้แสดงเฉพาะตัวเลขและขั้นตอน",
 } as const;

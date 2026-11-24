@@ -1,3 +1,4 @@
+import { IconPlayerPlay } from "@tabler/icons-react";
 import Link from "next/link";
 import { NOT_MEASURED } from "@/lib/lab/compare";
 import { firstItem } from "@/lib/lab/items";
@@ -7,8 +8,10 @@ import { Ladder } from "./Ladder";
 
 // คำตอบ: layout of reference/index.html lines 233–241, cards after its template at lines 467–478. Text from page.json →
 // answer (the bold part of the verdict = `verdictEmphasis`); card rows = `answer.modelCards`; the gauge's card size,
-// comfort line and title = `behind.gauge`. Card labels are the reference template's own text. Each card's "▶ ดูคลิป" is a
-// real link, to `clipHref(row id)` (SPEC-012 § Rework round 1: the run's คลิป tab).
+// comfort line and title = `behind.gauge`. Card labels are the reference template's own text. Each card's "ดูคลิป" is a
+// real link, to `clipHref(row id)` (SPEC-012 § Rework round 1: the run's คลิป tab); its ▶ glyph is the set's icon since
+// REQ-012 (TASK-055). Since TASK-055 the home draws its own cards (site/Home.tsx), so `Answer` has no live caller; `Dots`
+// is still used by RunBits.
 export function Answer({ runs, page, clipHref }: { runs: Run[]; page: Page; clipHref: (rowId: string) => string }) {
   const { answer, behind, ladder } = page;
   const cards = answer.modelCards
@@ -82,7 +85,8 @@ function ModelCard({ row, gauge, clipHref }: { row: Run; gauge: Page["behind"]["
         )}
       </div>
       <Link className="play" href={clipHref(row.id)}>
-        ▶ ดูคลิป
+        <IconPlayerPlay size={20} stroke={1.75} aria-hidden="true" />
+        ดูคลิป
       </Link>
     </article>
   );

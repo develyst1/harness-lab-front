@@ -101,7 +101,8 @@ export interface Page {
   answer: { kicker: string; verdict: string; verdictEmphasis: string; modelCards: string[]; how: string };
   ladder: { title: string; levels: LadderLevel[]; note: string };
   clips: { kicker: string; title: string; note: string; noClip: string };
-  history: { kicker: string; title: string; intro: string };
+  /** missingNote: why rents 7–8 are not on /runs (Modio A3 c, served by TASK-066); optional, so an older back still loads. */
+  history: { kicker: string; title: string; intro: string; missingNote?: string };
   compare: { kicker: string; title: string; note: string };
   spec: { title: string; rows: [string, string][] };
   plan: {
@@ -167,9 +168,10 @@ export interface Technique {
   metric: string;
   metricTh: string;
   before: string;
-  beforeTh: string;
+  /** May be missing in a pack (TEST-012 DEF-1): the card then draws no before → after and shows its other fields. */
+  beforeTh?: string;
   after: string;
-  afterTh: string;
+  afterTh?: string;
   gain: string;
   gainTh: string;
   evidence: string;

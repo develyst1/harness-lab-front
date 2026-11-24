@@ -1,6 +1,8 @@
 import { clipTabs } from "./clips";
+import { fixtureHeading, foundShare, foundText, visualArms } from "./meeting";
 import { MEETING_GLOSSARY } from "./meetingGlossary";
 import { groupName } from "./techniques";
+import { techPairs } from "./techViz";
 import type { GlossaryEntry, LabData, Meeting, Page, Run, Technique } from "./types";
 
 // The multi-page site (SPEC-012, REQ-011): what each page gets, as a whitelist, and the state that lives in its URL.
@@ -168,7 +170,8 @@ export function homeView(lab: LabData): HomeView {
 }
 
 /** A run as /runs lists it: today's ประวัติ entry header (id · date, title, the machine line, the pill) and the sort keys. */
-export type RunRow = RunLine & Pick<Run, "gpu" | "model" | "quant" | "ctx" | "card" | "loop" | "label" | "verdict">;
+/** `minutes`: the run's time over all its items (TASK-057: /runs draws it as a bar, on one scale across runs). */
+export type RunRow = RunLine & Pick<Run, "gpu" | "model" | "quant" | "ctx" | "card" | "loop" | "label" | "verdict"> & { minutes: number };
 
 export interface RunsView {
   history: Page["history"];
@@ -177,9 +180,9 @@ export interface RunsView {
 
 /** /runs's slice (SPEC-012 D2): the ประวัติ heading and one entry header per run, pack order (the page sorts). */
 export function runsView(lab: LabData): RunsView {
-  const { kicker, title, intro } = lab.page.history;
+  const { kicker, title, intro, missingNote } = lab.page.history;
   return {
-    history: { kicker, title, intro },
+    history: { kicker, title, intro, ...(missingNote ? { missingNote } : {}) },
     runs: lab.runs.map((r) => ({
       ...line(r),
       gpu: r.gpu,
@@ -190,6 +193,7 @@ export function runsView(lab: LabData): RunsView {
       loop: r.loop,
       label: r.label,
       verdict: r.verdict,
+      minutes: r.items.reduce((sum, i) => sum + i.minutes, 0),
     })),
   };
 }
@@ -226,6 +230,16 @@ export function techniquesView(lab: LabData): TechniquesView {
   return { head, groups };
 }
 
+/** /techniques' readout (SPEC-013 ranked row 1; TASK-056): every technique whose before → after the page can draw
+ * (techViz.ts: a pair with a number the pack's own words say), in group order, with its pairs. A card whose technique is
+ * here shows its two texts, not a second drawing (SPEC-013 Q4, the default after the owner's AC-1 yes). */
+export function techReadout(groups: TechniquesView["groups"]): { t: Technique; pairs: ReturnType<typeof techPairs>["pairs"] }[] {
+  return groups
+    .flatMap((g) => g.techniques)
+    .map((t) => ({ t, pairs: techPairs(t).pairs }))
+    .filter((x) => x.pairs.some((p) => p.before.value !== undefined || p.after.value !== undefined));
+}
+
 /** /techniques/[id]: one technique and the head its card reads; an unknown id (exact match) → null. */
 export function techniqueView(lab: LabData, id: string): { technique: Technique; head: Page["techniques"] } | null {
   const technique = lab.techniques.find((t) => t.id === id);
@@ -241,10 +255,34 @@ export function compareView(lab: LabData): { runs: Run[]; compare: Page["compare
 /** The one study's id in its URL (SPEC-012 § Public safety: the only new id in a URL). */
 export const STUDY_ID = "r-m1";
 
-/** /studies: one card per study (today the R-M1 meeting study); none when the back sends no meeting. */
-export function studiesView(lab: LabData): { studies: { id: string; titleTh: string; questionTh: string }[] } {
+/** One row of a study's headline bars: an arm, and one cell per meeting (TASK-058). */
+export interface StudyBar {
+  id: string;
+  label: string;
+  cells: { key: string; heading: string; share: number | null; text: string }[];
+}
+
+/** The study's headline as bars (TASK-058): the arms the meeting visual shows (the first of each kind, `visualArms`), each
+ * with found ÷ N per meeting, through the section's own display rules (lib/lab/meeting.ts), so the numbers read exactly
+ * as in Meeting.tsx. A null or missing count → "—" and no bar. */
+export function studyBars(m: Pick<Meeting, "arms" | "fixtures">): StudyBar[] {
+  return visualArms(m.arms).map((a) => ({
+    id: a.id,
+    label: a.labelTh,
+    cells: m.fixtures.map((f) => ({
+      key: f.id,
+      heading: fixtureHeading(f),
+      share: foundShare(a.found[f.id], f.actions),
+      text: foundText(a.found[f.id], f.actions),
+    })),
+  }));
+}
+
+/** /studies: one card per study (today the R-M1 meeting study), with its headline bars; none when the back sends no
+ * meeting. */
+export function studiesView(lab: LabData): { studies: { id: string; titleTh: string; questionTh: string; bars: StudyBar[] }[] } {
   const m = lab.meeting;
-  return { studies: m ? [{ id: STUDY_ID, titleTh: m.titleTh, questionTh: m.questionTh }] : [] };
+  return { studies: m ? [{ id: STUDY_ID, titleTh: m.titleTh, questionTh: m.questionTh, bars: studyBars(m) }] : [] };
 }
 
 /** /studies/[id]: Meeting.tsx's two props (REQ-010 Contract 3: the toView'd meeting, the page glossary). Only `r-m1`, and
@@ -268,13 +306,22 @@ export interface GlossaryTerm {
   plain: string;
 }
 
+/** A /glossary group (REQ-012, TASK-055): the page's own terms ("lab"), or the study's ("study", titled by the study). */
+export interface GlossaryGroup {
+  key: "lab" | "study";
+  studyTitle?: string;
+  terms: GlossaryTerm[];
+}
+
 /** /glossary: the page's entries, then MEETING_GLOSSARY when the back sends the meeting, numbered on (term-1 …), as the
  * one-page site's "คำศัพท์" list was (SPEC-011 R3, AC-8; SPEC-012 D5). */
-export function glossaryView(lab: LabData): { terms: GlossaryTerm[] } {
+export function glossaryView(lab: LabData): { terms: GlossaryTerm[]; groups: GlossaryGroup[] } {
   const entries: readonly GlossaryEntry[] = [...lab.page.explain.glossary, ...(lab.meeting ? MEETING_GLOSSARY : [])];
-  return {
-    terms: entries.map(([term, plain, aliases], i) => ({ id: `term-${i + 1}`, name: [term, ...(aliases ?? [])].join(", "), plain })),
-  };
+  const terms = entries.map(([term, plain, aliases], i) => ({ id: `term-${i + 1}`, name: [term, ...(aliases ?? [])].join(", "), plain }));
+  const own = lab.page.explain.glossary.length;
+  const groups: GlossaryGroup[] = [{ key: "lab", terms: terms.slice(0, own) }];
+  if (lab.meeting && terms.length > own) groups.push({ key: "study", studyTitle: lab.meeting.titleTh, terms: terms.slice(own) });
+  return { terms, groups };
 }
 
 /** /hardware: today's Plan props; of `page`, only `plan` and `spec` (what Plan reads). */
@@ -290,6 +337,8 @@ export function aboutView(lab: LabData): { runs: Run[]; meta: LabData["meta"]; p
 export interface RunView {
   run: Run;
   clips: Page["clips"];
+  /** The VRAM gauge's words and scale, as the answer cards draw it (TASK-057: the สรุป tab's readout). */
+  gauge: Page["behind"]["gauge"];
   /** Every run as the platform's sidebar lists it. */
   all: Pick<Run, "id" | "title" | "date">[];
   near: { prev: string | null; next: string | null };
@@ -302,6 +351,7 @@ export function runView(lab: LabData, id: string): RunView | null {
   return {
     run,
     clips: lab.page.clips,
+    gauge: lab.page.behind.gauge,
     all: lab.runs.map((r) => ({ id: r.id, title: r.title, date: r.date })),
     near: neighbours(lab.runs, id),
   };
