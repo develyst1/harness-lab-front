@@ -1,16 +1,21 @@
 "use client";
 
 import { Fragment, type MouseEvent, useEffect, useMemo, useState } from "react";
+import type { GlossaryTerm } from "@/lib/lab/site";
 import { escapePanels, nearestTerm, type OpenPanels, storySegments, togglePanel } from "@/lib/lab/story";
 import type { Page } from "@/lib/lab/types";
 
-// เรื่องเล่า (SPEC-006 § Front, layout A = the TASK-023 comp): after the hero, the 7 chapters of page.json → explain.story
-// as when · title · text. A glossary term in the text is a real <button> (its text is its accessible name) that opens
-// the entry's plain line under the paragraph; a second tap or Esc closes it, one open line per chapter. A term is only as
-// wide as its word and the lines stay even (comp A); a tap that misses every word opens the nearest term of that
-// chapter within 22 px (SPEC-006 § Amendment, REQ-006 Q3 option a). Then every entry in the open "คำศัพท์" list, each
-// with its anchor term-<n>. Kicker, title and "คำศัพท์" are the PM's words (REQ-006 req 2, 4).
-export function Story({ explain }: { explain: Page["explain"] }) {
+// เรื่องเล่า (SPEC-006 § Front, layout A = the TASK-023 comp; /story since SPEC-012): the chapters of page.json →
+// explain.story as when · title · text, each <li> anchored chapter-<n> (SPEC-012 D4). A glossary term in the text is a
+// real <button> (its text is its accessible name) that opens the entry's plain line under the paragraph; a second tap or
+// Esc closes it, one open line per chapter. A term is only as wide as its word and the lines stay even (comp A); a tap
+// that misses every word opens the nearest term of that chapter within 22 px (SPEC-006 § Amendment, REQ-006 Q3 option
+// a). Kicker and title are the PM's words (REQ-006 req 2, 4). The "คำศัพท์" list is `Glossary`, on /glossary (D5).
+export function Story({ explain, titleAs: Title = "h2" }: {
+  explain: Pick<Page["explain"], "story" | "glossary">;
+  /** SPEC-012 D11: "h1" where the section is the page (/story); it keeps the h2 look. */
+  titleAs?: "h1" | "h2";
+}) {
   const { story, glossary } = explain;
   const chapters = useMemo(() => story.map(([, , text]) => storySegments(text, glossary)), [story, glossary]);
   const [open, setOpen] = useState<OpenPanels>({});
@@ -48,13 +53,13 @@ export function Story({ explain }: { explain: Page["explain"] }) {
   return (
     <section id="story">
       <div className="run">เรื่องเล่า</div>
-      <h2>เราทดลองอะไร ทีละรอบ</h2>
+      <Title className={Title === "h1" ? "as-h2" : undefined}>เราทดลองอะไร ทีละรอบ</Title>
       <ol className="chapters" onClick={nearest}>
         {story.map(([when, title], ci) => {
           const segments = chapters[ci];
           const panelId = (si: number) => `story-${ci + 1}-${si}`;
           return (
-            <li key={`${ci}-${when}`} className="chapter">
+            <li key={`${ci}-${when}`} id={`chapter-${ci + 1}`} className="chapter">
               <span className="when">{when}</span>
               <b className="ttl">{title}</b>
               <div className="txt">
@@ -88,19 +93,21 @@ export function Story({ explain }: { explain: Page["explain"] }) {
           );
         })}
       </ol>
-      <details className="fold glossary-fold" open>
-        <summary>คำศัพท์</summary>
-        <div className="in">
-          <dl className="glossary">
-            {glossary.map(([term, plain, aliases], gi) => (
-              <Fragment key={gi}>
-                <dt id={`term-${gi + 1}`}>{[term, ...(aliases ?? [])].join(", ")}</dt>
-                <dd>{plain}</dd>
-              </Fragment>
-            ))}
-          </dl>
-        </div>
-      </details>
     </section>
+  );
+}
+
+/** The "คำศัพท์" list (moved from Story, SPEC-012 D5): every entry, aliases after the term, each dt an anchor term-<n>,
+ * the same markup as before (lib/lab/site.ts glossaryView numbers them). /glossary gives it its h1. */
+export function Glossary({ terms }: { terms: GlossaryTerm[] }) {
+  return (
+    <dl className="glossary">
+      {terms.map((t) => (
+        <Fragment key={t.id}>
+          <dt id={t.id}>{t.name}</dt>
+          <dd>{t.plain}</dd>
+        </Fragment>
+      ))}
+    </dl>
   );
 }

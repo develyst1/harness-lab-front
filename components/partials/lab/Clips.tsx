@@ -15,13 +15,15 @@ function boldOnly(text: string) {
     .map((part, i) => (part.startsWith("<b>") && part.endsWith("</b>") ? <b key={i}>{part.slice(3, -4)}</b> : part));
 }
 
-export function Clips({ tabs, view, clips, onSelect, onSpeed, onFailed }: {
+export function Clips({ tabs, view, clips, onSelect, onSpeed, onFailed, titleAs: Title = "h2" }: {
   tabs: ClipTab[];
   view: ClipView;
   clips: Page["clips"];
   onSelect: (key: string) => void;
   onSpeed: (rate: number) => void;
   onFailed: (key: string) => void;
+  /** SPEC-012 D11: "h1" where the player is the page (/clips); it keeps the h2 look. */
+  titleAs?: "h1" | "h2";
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const { src, selectedKey, rate, plays } = view;
@@ -44,7 +46,7 @@ export function Clips({ tabs, view, clips, onSelect, onSpeed, onFailed }: {
   return (
     <section id="clips">
       <div className="run">{clips.kicker}</div>
-      <h2>{clips.title}</h2>
+      <Title className={Title === "h1" ? "as-h2" : undefined}>{clips.title}</Title>
       <div className="player">
         {tabs.length > 0 && (
           <div className="tabs" role="tablist" aria-label="เลือกคลิป">

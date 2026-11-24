@@ -11,7 +11,13 @@ import { pct, tight } from "@/lib/lab/vram";
 // (Modio's re-issue, TASK-009).
 const PART: Record<string, string> = { system: "sys", tools: "tools", card: "card", injected: "inj" };
 
-export function Behind({ runs, meta, page }: { runs: Run[]; meta: Meta; page: Page }) {
+export function Behind({ runs, meta, page, titleAs: Title = "h2" }: {
+  runs: Run[];
+  meta: Meta;
+  page: Page;
+  /** SPEC-012 D11: "h1" where the section is the page (/about); it keeps the h2 look. */
+  titleAs?: "h1" | "h2";
+}) {
   const b = page.behind;
   const gaugeRows = runs.flatMap((r) =>
     r.items
@@ -21,7 +27,7 @@ export function Behind({ runs, meta, page }: { runs: Run[]; meta: Meta; page: Pa
   return (
     <section id="behind">
       <div className="run">{b.kicker}</div>
-      <h2>{b.title}</h2>
+      <Title className={Title === "h1" ? "as-h2" : undefined}>{b.title}</Title>
       <div className="folds">
         <Fold title={b.tokens.title} sub={b.tokens.sub}>
           <p>{b.tokens.lead}</p>

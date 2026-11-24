@@ -14,6 +14,9 @@ import "@mantine/core/styles/ScrollArea.css";
 import "@mantine/core/styles/Slider.css";
 import "@mantine/core/styles/SegmentedControl.css";
 import "./globals.css";
+import { Footer } from "@/components/partials/lab/Footer";
+import { SiteNav } from "@/components/partials/site/SiteNav";
+import { loadLab } from "@/lib/lab/load";
 
 // The reference page's three fonts, downloaded at build and served by the app (no Google call at run time).
 // globals.css reads them through these variables (--display, --body, --mono).
@@ -40,14 +43,26 @@ export const metadata: Metadata = {
   title: "Harness Lab",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+// Every page reads the back per request (SPEC-012 § Conventions), the layout too: its footer is the pack's.
+export const dynamic = "force-dynamic";
+
+// The site's frame (SPEC-012 § Conventions): the path navbar, the page, the footer. loadLab is cached per request, so the
+// page's own read is the same fetch. On a load failure the footer is left out and the page shows its load-error line.
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const lab = await loadLab();
   return (
     <html lang="th" {...mantineHtmlProps} className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <head>
         <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="auto">{children}</MantineProvider>
+        <MantineProvider defaultColorScheme="auto">
+          <SiteNav />
+          <main className="wrap">
+            {children}
+            {lab && <Footer text={lab.page.footer} />}
+          </main>
+        </MantineProvider>
       </body>
     </html>
   );
