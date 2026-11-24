@@ -1,6 +1,7 @@
+import { IconCircleCheck, IconCircleHalf2, IconCircleX, type Icon } from "@tabler/icons-react";
 import Link from "next/link";
 import { Dots } from "@/components/partials/lab/Answer";
-import type { Run } from "@/lib/lab/types";
+import type { Run, Verdict } from "@/lib/lab/types";
 
 // A run's parts as the one-page site's ประวัติ entry showed them: the machine line, the verdict pill and the item lines.
 // This is their one home (SPEC-012 D3): /runs, the run page and the home's latest run all read them here.
@@ -9,8 +10,18 @@ import type { Run } from "@/lib/lab/types";
 export const machine = (r: Pick<Run, "gpu" | "model" | "quant" | "ctx" | "card" | "loop" | "cost">) =>
   `${r.gpu} · ${r.model} ${r.quant} · ความจำ ${r.ctx}k${r.card ? " · การ์ดความรู้ทีม" : ""}${r.loop ? " · Tech Lead ตรวจ" : ""} · $${r.cost.toFixed(2)}`;
 
+/** The verdict's icon (TASK-057, SPEC-013 row 6): the pill says its state by shape too, never by colour alone. */
+const VERDICT_ICON: Record<Verdict, Icon> = { ok: IconCircleCheck, part: IconCircleHalf2, bad: IconCircleX };
+
 export function Pill({ run }: { run: Pick<Run, "label" | "verdict"> }) {
-  return run.label && run.verdict ? <span className={`pill ${run.verdict}`}>{run.label}</span> : null;
+  if (!run.label || !run.verdict) return null;
+  const I = VERDICT_ICON[run.verdict];
+  return (
+    <span className={`pill ${run.verdict}`}>
+      <I size={14} stroke={2} aria-hidden="true" />
+      {run.label}
+    </span>
+  );
 }
 
 /** History.tsx's item lines: label · minutes / cap นาที (· หมดเวลา) · the caught-bug dots. */

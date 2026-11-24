@@ -44,4 +44,16 @@ export const W = {
   notFound: "ไม่พบหน้านี้", // PROPOSED
   backHome: "กลับหน้าแรก", // PROPOSED
   loadError: "โหลดข้อมูลการทดลองไม่ได้ ลองรีเฟรชอีกครั้ง",
+  // REQ-012 (TASK-055…058): the comp's chrome words (TASK-054; the comp was removed in TASK-058), shown to the owner at AC-1,
+  // where he asked no change. Still PROPOSED for the PM.
+  minutesOf: (cap: number) => `จาก ${cap} นาที`, // PROPOSED (beside a minutes bar)
+  over: "เกินเส้นประ", // PROPOSED (aria only: a gauge past its comfort line)
+  glossSearch: "ค้นหาคำศัพท์", // PROPOSED
+  glossFound: (n: number) => `พบ ${n} คำ`, // PROPOSED
+  glossNone: "ไม่พบคำที่ตรงกัน", // PROPOSED
+  glossLab: "คำศัพท์ของการทดลอง", // PROPOSED (the page glossary's group; the study's group is its own title)
+  glossGroups: "กลุ่มคำศัพท์", // PROPOSED (aria-label of the group chips)
+  techGroups: "กลุ่มเทคนิค", // PROPOSED (aria-label of /techniques' group index)
+  drawn: "เทคนิคที่วัดผลเป็นตัวเลข", // PROPOSED (the /techniques readout's heading)
+  payMark: "เส้นประ = 2 ปี และ 4 ปี", // PROPOSED (the payback chart's lines: plan.ts's 24 and 48 months)
 } as const;

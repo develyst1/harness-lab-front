@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { MEETING_GLOSSARY } from "./meetingGlossary";
 import {
   aboutView, clipsView, compareView, glossaryView, hardwareView, homeHref, homeParams, homeView, latestRun, neighbours, oldAnchorTarget, parseSort,
-  parseTab, runsView, runView, searchHits, searchIndex, sortRuns, storyView, studiesView, studyView, techniquesView, techniqueView,
+  parseTab, runsView, runView, searchHits, searchIndex, sortRuns, storyView, studiesView, studyBars, studyView, techniquesView,
+  techniqueView, techReadout,
 } from "./site";
 import { groupName } from "./techniques";
 import type { LabData, Run } from "./types";
@@ -133,6 +134,7 @@ describe("runView — one run's slice; an unknown id → null (notFound)", () =>
     const v = runView(lab, "R4a")!;
     expect(v.run.id).toBe("R4a");
     expect(v.clips).toEqual({ kicker: "ck", title: "ct", note: "cn", noClip: "nc" });
+    expect(v.gauge).toEqual({ title: "gt", sub: "", note: "", cardMiB: 49140, comfort: 0.75 });
     expect(v.all.map((r) => Object.keys(r).sort().join(","))).toEqual(Array(5).fill("date,id,title"));
     expect(v.near).toEqual({ prev: "R2", next: "R4b" });
     expect(JSON.stringify(v)).not.toContain("TEXT ONE");
@@ -147,6 +149,12 @@ describe("runView — one run's slice; an unknown id → null (notFound)", () =>
 describe("runsView — /runs's slice (SPEC-012 D2, D9): today's ประวัติ heading and each run's entry header", () => {
   const v = runsView(lab);
 
+  test("the back's missingNote (TASK-066) comes through when it is sent, and is simply absent when not (TASK-058 Q4)", () => {
+    const withNote = { ...lab, page: { ...lab.page, history: { ...lab.page.history, missingNote: "mn" } } };
+    expect(runsView(withNote).history.missingNote).toBe("mn");
+    expect("missingNote" in runsView(lab).history).toBe(false);
+  });
+
   test("the heading is history's kicker, title and intro; every run is there, in pack order", () => {
     expect(v.history).toEqual({ kicker: "hk", title: "ht", intro: "hi" });
     expect(v.runs.map((r) => r.id)).toEqual(["R1", "R2", "R4a", "R4b", "R10"]);
@@ -154,10 +162,16 @@ describe("runsView — /runs's slice (SPEC-012 D2, D9): today's ประวั�
 
   test("a row carries only what the entry header shows: id, date, title, the machine line's parts, the pill, the sort keys", () => {
     expect(Object.keys(v.runs[0]).sort()).toEqual(
-      ["card", "cost", "ctx", "date", "gpu", "id", "isoDate", "label", "loop", "model", "quant", "title", "verdict"].sort(),
+      ["card", "cost", "ctx", "date", "gpu", "id", "isoDate", "label", "loop", "minutes", "model", "quant", "title", "verdict"].sort(),
     );
     const json = JSON.stringify(v);
     expect(["\"sum\"", "\"notes\"", "\"items\"", "\"watch\"", "TEXT ONE", "PLAN LEAD"].filter((s) => json.includes(s))).toEqual([]);
+  });
+
+  test("minutes: the run's time over all its items (TASK-057's bar), 0 for a run with none", () => {
+    const withItems = { ...lab, runs: [{ ...runs[0]!, items: [{ minutes: 35 }, { minutes: 70 }, { minutes: 41 }] }] } as unknown as LabData;
+    expect(runsView(withItems).runs[0]!.minutes).toBe(146);
+    expect(v.runs[0]!.minutes).toBe(0);
   });
 });
 
@@ -206,6 +220,26 @@ describe("techniquesView — /techniques's slice (grouped by group, SPEC-012 § 
   });
 });
 
+describe("techReadout — /techniques' readout: the techniques it can draw, in group order (TASK-056)", () => {
+  const tech = (id: string, beforeTh: string, afterTh: string) =>
+    ({ id, group: "g", nameTh: id, whatTh: "w", model: "m", metricTh: "token ก่อนเริ่มงาน", beforeTh, afterTh, gainTh: "g", evidenceTh: "e" }) as never;
+  const groups = [
+    { group: "a", name: "A", techniques: [tech("T02", "ไม่มีเลข", "ไม่มีเลข"), tech("T01", "~17,100 (โหมดเต็ม)", "~944 (--bare)")] },
+    { group: "b", name: "B", techniques: [tech("T04", "3/4", "4/4")] },
+  ];
+
+  test("only techniques with a drawable number, in group then pack order, with the values techViz reads", () => {
+    const r = techReadout(groups);
+    expect(r.map((x) => x.t.id)).toEqual(["T01", "T04"]);
+    expect(r[0]!.pairs[0]!.before.value).toBe(17100);
+    expect(r[1]!.pairs[0]!.after).toMatchObject({ value: 4, of: 4 });
+  });
+
+  test("a technique whose words changed drops out of the readout (its card then shows the words)", () => {
+    expect(techReadout([{ group: "a", name: "A", techniques: [tech("T01", "~17,000 (โหมดเต็ม)", "~944 (--bare)")] }])).toEqual([]);
+  });
+});
+
 describe("techniqueView — /techniques/[id]'s slice; an unknown id → null (notFound)", () => {
   test("the technique and the section head (the card names its group from it)", () => {
     const v = techniqueView(techLab, "T03")!;
@@ -231,8 +265,8 @@ describe("compareView — /compare's slice: today's Compare props, and nothing e
 });
 
 describe("studiesView and studyView — /studies and /studies/r-m1 (REQ-010 Contract 3 for the study)", () => {
-  test("/studies: one card per study (id, title, question); none when the back sends no meeting", () => {
-    expect(studiesView(lab)).toEqual({ studies: [{ id: "r-m1", titleTh: "mt", questionTh: "mq" }] });
+  test("/studies: one card per study (id, title, question, its headline bars); none when the back sends no meeting", () => {
+    expect(studiesView(lab)).toEqual({ studies: [{ id: "r-m1", titleTh: "mt", questionTh: "mq", bars: [] }] });
     expect(studiesView({ ...lab, meeting: null })).toEqual({ studies: [] });
   });
 
@@ -247,6 +281,28 @@ describe("studiesView and studyView — /studies and /studies/r-m1 (REQ-010 Cont
     expect(studyView(lab, "x")).toBeNull();
     expect(studyView(lab, "R-M1")).toBeNull();
     expect(studyView({ ...lab, meeting: null }, "r-m1")).toBeNull();
+  });
+});
+
+describe("studyBars — the study's headline as bars (TASK-058): the first arm of each kind × every meeting", () => {
+  const arm = (id: string, kind: "local" | "hybrid" | "talent", found: Record<string, number | null>) =>
+    ({ id, kind, labelTh: `label ${id}`, found, done: [1, 1], secShort: 1, secLong: null, usdPerMeeting: [0, 0] }) as never;
+  const meeting = {
+    fixtures: [{ id: "a", minutes: 4.1, actions: 5, asrSec: 1 }, { id: "b", minutes: 56.4, actions: 42, asrSec: 1 }],
+    arms: [arm("L", "local", { a: 2, b: null }), arm("H1", "hybrid", { a: 5 }), arm("H2", "hybrid", { a: 4, b: 1 }),
+      arm("T1", "talent", { a: 5, b: 38 })],
+  } as never;
+  test("one row per kind, in pack order (the visual's arms); one cell per meeting, in fixture order", () => {
+    const rows = studyBars(meeting);
+    expect(rows.map((r) => [r.id, r.label])).toEqual([["L", "label L"], ["H1", "label H1"], ["T1", "label T1"]]);
+    expect(rows[0].cells.map((c) => c.key)).toEqual(["a", "b"]);
+  });
+  test("each cell: the display rules' text, share and heading; null or missing → — and no bar", () => {
+    const [l, h, t] = studyBars(meeting);
+    expect(l.cells[0]).toEqual({ key: "a", heading: "4.1 นาที · 5 งาน", share: 0.4, text: "2/5" });
+    expect(l.cells[1]).toEqual({ key: "b", heading: "56.4 นาที · 42 งาน", share: null, text: "—" });
+    expect(h.cells[1]).toEqual({ key: "b", heading: "56.4 นาที · 42 งาน", share: null, text: "—" });
+    expect(t.cells[1].text).toBe("38/42");
   });
 });
 
@@ -270,6 +326,16 @@ describe("glossaryView — /glossary: the page's entries, then MEETING_GLOSSARY 
     expect(v.terms.slice(0, 2)).toEqual([{ id: "term-1", name: "a", plain: "b" }, { id: "term-2", name: "c", plain: "d" }]);
     expect(v.terms[2].name).toBe("สมองเสริม, talent");
     expect(v.terms[12].name).toBe("… ล้วน (สมองเสริม)");
+  });
+
+  test("REQ-012 (TASK-055): the terms in two groups, the page's then the study's (titled by the study), same ids", () => {
+    const v = glossaryView(lab);
+    expect(v.groups.map((g) => [g.key, g.studyTitle ?? null, g.terms.length])).toEqual([
+      ["lab", null, 2],
+      ["study", lab.meeting!.titleTh, MEETING_GLOSSARY.length],
+    ]);
+    expect(v.groups.flatMap((g) => g.terms)).toEqual(v.terms);
+    expect(glossaryView({ ...lab, meeting: null }).groups.map((g) => g.key)).toEqual(["lab"]);
   });
 
   test("without the meeting: the page's entries only; aliases follow the term, comma-joined", () => {

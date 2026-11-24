@@ -6,26 +6,45 @@
    44 px tap targets for nav links and "▶ ดูคลิป" (L5). Each change is marked "L1"…"L5" below. TASK-004 added the
    ladder, the no-clip panel, the ประวัติ subgrid (L6), the Select styling and 44 px tabs, each with its own comment. */
 /* Layout: answer first. A sticky bar of five stops; the answer and its three model cards, then the clips, then history and compare; the deep detail folds away under "เบื้องหลัง". Every number is drawn from RUNS. */
+/* TASK-072: the owner's palette ค (his yes, 2026-11-24: "โอเคเอาตามนี้แหละ", status colours option ก). Peach #F4BAA3,
+   cream #F4F0E2, light blue #A6C8E2, mid blue #619DC6; every token is one of them, a mix, or a tint/shade
+   (tests/harness/task-072/palette-c.ts). Status: passed = deep mid blue, partly / failed = peach at two depths, always
+   with icon + word. It was the comp's `:root.pal-c`; the old teal / green / amber / red tokens are gone. */
 :root {
-  --bg: #eef1f3; --paper: #fbfcfc; --ink: #15212b; --mute: #5b6875; --line: #d5dce2;
-  --signal: #0b6f7a; --signal-soft: #d5ecee; --review: #a8630a; --review-soft: #f6e6cf;
-  --ok: #1e7a45; --ok-soft: #dcefe3; --bad: #b3362d; --bad-soft: #f6dedb; --think: #5a4fb3; --think-soft: #e6e3f7;
+  --bg: #F4F0E2; --paper: #FBF9F3; --ink: #182732; --mute: #314F63; --line: #8EB9D8;
+  --signal: #3F6681; --signal-ink: #3A5E77; --signal-soft: #A6C8E2;
+  --review: #7A5D52; --review-ink: #6E5449; --review-soft: #F4BAA3;
+  --ok: #2C4759; --ok-ink: #273F4F; --ok-soft: #C1D9EB;
+  --bad: #4E3C34; --bad-ink: #4E3C34; --bad-soft: #F8D2C3; --think: #4B5A66; --think-soft: #C1D9EB;
   --display: var(--font-bai-jamjuree), var(--font-plex-thai), system-ui, sans-serif;
   --body: var(--font-plex-thai), system-ui, sans-serif;
   --mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
-  /* L4: small text on a soft tint. Same hue, darker only as far as 4.5:1 needs; equal to the reference where it passes. */
-  --ok-ink: #1d7844; --review-ink: #975909; --bad-ink: #b3362d; --signal-ink: #0b6f7a;
+  --ibox: linear-gradient(135deg, #A6C8E2, #F4F0E2);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0f1418; --paper: #161d23; --ink: #e4eaee; --mute: #93a1ad; --line: #2a343d;
-  --signal: #4fc3cf; --signal-soft: #143238; --review: #e3a14b; --review-soft: #3a2a14;
-  --ok: #5ccf8c; --ok-soft: #15301f; --bad: #f08176; --bad-soft: #3a1c19; --think: #a99cff; --think-soft: #262243; color-scheme: dark;
-  --ok-ink: #5ccf8c; --review-ink: #e3a14b; --bad-ink: #f08176; --signal-ink: #4fc3cf } }
+  --bg: #0E161C; --paper: #131F28; --ink: #F4F0E2; --mute: #BDD4E2; --line: #314F63;
+  --signal: #A6C8E2; --signal-ink: #A6C8E2; --signal-soft: #2C4759;
+  --review: #F4BAA3; --review-ink: #F4BAA3; --review-soft: #624A41;
+  --ok: #BCD6E9; --ok-ink: #BCD6E9; --ok-soft: #314F63;
+  --bad: #F8D2C3; --bad-ink: #F8D2C3; --bad-soft: #6E5449; --think: #A6C8E2; --think-soft: #314F63; color-scheme: dark;
+  --ibox: linear-gradient(135deg, #3F6681, #131F28) } }
 :root[data-theme="dark"] {
-  --bg: #0f1418; --paper: #161d23; --ink: #e4eaee; --mute: #93a1ad; --line: #2a343d;
-  --signal: #4fc3cf; --signal-soft: #143238; --review: #e3a14b; --review-soft: #3a2a14;
-  --ok: #5ccf8c; --ok-soft: #15301f; --bad: #f08176; --bad-soft: #3a1c19; --think: #a99cff; --think-soft: #262243; color-scheme: dark;
-  --ok-ink: #5ccf8c; --review-ink: #e3a14b; --bad-ink: #f08176; --signal-ink: #4fc3cf }
+  --bg: #0E161C; --paper: #131F28; --ink: #F4F0E2; --mute: #BDD4E2; --line: #314F63;
+  --signal: #A6C8E2; --signal-ink: #A6C8E2; --signal-soft: #2C4759;
+  --review: #F4BAA3; --review-ink: #F4BAA3; --review-soft: #624A41;
+  --ok: #BCD6E9; --ok-ink: #BCD6E9; --ok-soft: #314F63;
+  --bad: #F8D2C3; --bad-ink: #F8D2C3; --bad-soft: #6E5449; --think: #A6C8E2; --think-soft: #314F63; color-scheme: dark;
+  --ibox: linear-gradient(135deg, #3F6681, #131F28) }
+/* Palette ค containers (the owner's rule, not-ai-look #4): clear, line only, or a gradient of his colours; never a wash,
+   never solid. `:root:root` keeps the comp's specificity (0,2,0), so these win over the per-component fills below,
+   exactly as they did on /comp/c (pal-diff.ts compares the two). */
+:root:root :is(.cv-card, .cv-readout, .site-card, .cv-say, .chapters, details.fold) { background: none }
+:root:root :is(.pill, .stamp, .mark, .role, .cv-role, .cv-now, .cv-steps li).ok,
+:root:root :is(.pill, .stamp, .mark, .role, .cv-role, .cv-now, .cv-steps li) { background: none }
+:root:root :is(.pill, .stamp, .role, .cv-role, .cv-steps li, .cv-now, .mark) { border: 1px solid currentColor }
+:root:root .cv-say { border: 1px solid var(--signal) }
+:root:root .vz-ibox { background: var(--ibox); color: var(--ink) } /* every icon box, any status: the gradient (on the comp the light one lost to the list above, (0,3,1) > (0,3,0); fixed here) */
+:root:root :is(.nav a.on, .site-sort a.on, .site-side a[aria-current], .pick-option[data-checked], .cmp td.win) { background: none; box-shadow: inset 0 -2px 0 var(--signal) }
 
 * { box-sizing: border-box }
 [hidden] { display: none !important }
@@ -35,7 +54,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 72px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0 }
-h1 { font-size: clamp(30px, 5.2vw, 48px); line-height: 1.08; letter-spacing: -.01em }
+h1 { font-size: clamp(28px, 4.4vw, 40px); line-height: 1.1; letter-spacing: -.01em } /* TASK-072 step 4: was up to 48 px (not-ai-look #5); now the same scale as .site-head h1 */
 h2 { font-size: clamp(23px, 3.2vw, 30px); line-height: 1.2 }
 h3 { font-size: 18px; line-height: 1.3 }
 p { margin: 0; max-width: 66ch }
@@ -43,15 +62,21 @@ p { margin: 0; max-width: 66ch }
 .mute { color: var(--mute) }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums }
 section { display: grid; gap: 18px; min-width: 0 }
-.proved { border-left: 3px solid var(--signal); padding: 4px 0 4px 14px; font-weight: 500 }
+/* SPEC-013 row 9 (TASK-056): the container language of the readout's own sentence (.cv-say), not a 3 px side border */
+.proved { padding: 12px 14px; border: 1px solid var(--signal); border-radius: 12px; font-weight: 500 } /* TASK-058: line-only, no wash (the owner's rule; critique A P1-3) */
 button, select { font: inherit; color: inherit }
 :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 4px }
 
 /* Sticky stops */
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line) }
-.nav .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 6px; height: 56px; overflow-x: auto; scrollbar-width: none;
+.nav .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 6px; height: 56px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
-.nav .in::-webkit-scrollbar { display: none }
+/* REQ-012 row 8 (TASK-055): the brand stays put; only the links scroll, and a faded edge shows there is more that way. */
+.nav .links { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; height: 100%; overflow-x: auto; scrollbar-width: none }
+.nav .links::-webkit-scrollbar { display: none }
+.nav .links[data-more="right"] { mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent) }
+.nav .links[data-more="left"] { mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent) }
+.nav .links[data-more="both"] { mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent) }
 .nav .brand { font: 700 17px var(--display); margin-right: 10px; white-space: nowrap }
 .nav .brand span { color: var(--signal) }
 .nav a { text-decoration: none; color: var(--mute); font-size: 14.5px; padding: 6px 12px; border-radius: 99px; white-space: nowrap; transition: background .2s, color .2s;
@@ -64,14 +89,24 @@ button, select { font: inherit; color: inherit }
 .hero .who { font: 500 13px var(--mono); color: var(--mute) }
 
 /* เรื่องเล่า (TASK-026, SPEC-006; ported from the TASK-023 comp A): 7 chapters, when · title · text, on one paper panel. */
-.chapters { list-style: none; margin: 0; padding: 4px 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px }
-.chapter { display: grid; grid-template-columns: 88px 190px minmax(0, 1fr); gap: 4px 18px; padding: 14px 0; border-top: 1px solid var(--line); align-items: baseline }
-.chapter:first-child { border-top: 0 }
+/* /story (TASK-058): the chapters on a timeline rail (viz .vz-tl, always vertical here); no card around them. */
+.chapters { list-style: none; margin: 0; padding: 0; max-width: 760px }
+.story-strip { max-width: 760px; margin: 4px 0 20px; overflow-x: auto; overscroll-behavior-x: contain }
+.story-strip-in { position: relative; min-width: calc(8 * 44px) }
+@media (max-width: 600px) { .story-strip { margin-inline: -16px; padding-inline: 4px } } /* the gutter is used, so 8 × 44 fits at 375 */
+.story-strip li { position: relative }
+.story-strip li::before { content: ""; position: absolute; top: -23px; left: 50%; width: 10px; height: 10px; margin-left: -7px; border-radius: 50%; background: var(--paper); border: 2px solid var(--signal) } /* the node, round at any width */
+.story-strip a { display: flex; align-items: flex-start; justify-content: center; min-height: 44px; padding-top: 4px; color: inherit; text-decoration: none }
+.story-strip a:hover { color: var(--signal-ink); text-decoration: underline }
+.story-strip svg { display: block; width: 100%; height: 24px }
+.story-strip line { stroke: var(--line); stroke-width: 2; vector-effect: non-scaling-stroke }
+.story-strip ol { list-style: none; margin: 4px 0 0; padding: 0; display: grid; text-align: center; font: 500 12px/1.3 var(--mono); color: var(--mute) }
+.chapter .vz-tl-a { padding: 10px 0 }
+.chapter .vz-tl-t { gap: 4px }
 .chapter .when { font: 500 12.5px var(--mono); color: var(--mute) }
 .chapter .ttl { font: 600 16px/1.4 var(--display) }
 .chapter .txt { display: grid; gap: 8px; font-size: 15px; line-height: 1.75; min-width: 0 }
 .chapter .txt p { max-width: none }
-@media (max-width: 760px) { .chapters { padding: 4px 16px } .chapter { grid-template-columns: minmax(0, 1fr); gap: 2px } }
 /* A term: a real button inside the sentence, only as wide as its word, dotted-underlined, adding no line height, so the
    lines stay even (comp A). AC-7 (SPEC-006 § Amendment, REQ-006 Q3 a): a tap that misses every word opens the nearest
    term within 22 px (Story.tsx, nearestTerm), so the space around a term is not dead and never opens a farther one. */
@@ -196,6 +231,7 @@ video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px;
 /* The two Mantine Selects, in the reference's look (old .pick select rule) and 44 px tall (L5). */
 .pick-input { --input-height: 44px; --input-bg: var(--bg); --input-bd: var(--line); --input-color: var(--ink);
   min-height: 44px; border-radius: 8px; font-size: 16px; cursor: pointer; background: var(--bg); border-color: var(--line); color: var(--ink) }
+.pick .pick-input:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-color: var(--signal) } /* TASK-072 audit: Mantine's :focus drops the outline; the site's ring, in the palette */
 .pick-dropdown { background: var(--paper); border: 1px solid var(--line); color: var(--ink) }
 .pick-option { min-height: 44px; display: flex; align-items: center; font-size: 14.5px; color: var(--ink) }
 .pick-option:hover, .pick-option[data-combobox-selected] { background: var(--bg) }
@@ -211,7 +247,6 @@ video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px;
 /* เทคนิค (TASK-015, SPEC-003): pack order, 2 columns from 900 px. L6: every card spans the 8 rows of .techs by subgrid
    (id + group · name · what it does (TASK-021) · model · metric · before | after · gain · evidence), so each kind of row
    starts at the same height in sibling cards. Text wraps, never cut. */
-.techs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
 @media (max-width: 899px) { .techs { grid-template-columns: minmax(0, 1fr) } }
 .tech { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0;
   display: grid; grid-row: span 8; grid-template-rows: subgrid; row-gap: 8px; font-size: 14.5px; line-height: 1.55; overflow-wrap: break-word }
@@ -221,12 +256,8 @@ video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px;
 .tech .group { font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--mute); border: 1px solid var(--line); border-radius: 99px; padding: 0 10px }
 .tech h3 { font-size: 16px; line-height: 1.4 }
 .tech .k { font-size: 13px; color: var(--mute) }
-.tech .kv { display: grid; grid-template-columns: 4.5em minmax(0, 1fr); gap: 10px; align-items: baseline }
-.tech .ba { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
-.tech .ba p { background: var(--bg); border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; align-content: start; font-variant-numeric: tabular-nums }
 @media (max-width: 519px) { .tech .ba { grid-template-columns: minmax(0, 1fr) } }
 .tech .gain { font: 600 15px/1.5 var(--display); color: var(--signal-ink) }
-.tech .ev { display: grid; gap: 2px; align-content: start; font-size: 13.5px }
 .ev-links { display: flex; flex-wrap: wrap; gap: 0 16px }
 .ev-links a { color: var(--signal-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
   display: inline-flex; align-items: center; min-height: 44px; min-width: 44px } /* L5 */
@@ -247,19 +278,47 @@ details.fold > .in { padding: 0 18px 18px; display: grid; gap: 14px }
 .track i { display: block; height: 100% }
 .track .sys { background: var(--signal) } .track .tools { background: var(--signal-soft); border-left: 1px solid var(--signal) }
 .track .inj { background: var(--review-soft); border-left: 1px solid var(--review) } .track .card { background: var(--ok) }
+/* REQ-012 row 9 (TASK-055): every empty track is outlined in --mute, ≥ 3:1 against its card, so a bar's 100% shows
+   (the token bars, the card-memory rows, the tiers' memory bars and the meeting bars; Meeting.tsx itself is unchanged). */
+.mini, .track, .mt-track { border: 1px solid var(--mute) }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--mute) }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px }
 @media (max-width: 600px) { .bar { grid-template-columns: 1fr 72px } .bar .lbl { grid-column: 1 / -1 } }
+/* /about (TASK-058, REQ-012 row 5): the three charts open, each a section under its heading; line-only, no wash. */
+.about-charts { display: grid; gap: 28px; margin-bottom: 24px }
+.about-chart { display: grid; gap: 12px; min-width: 0 }
+.about-chart > h2 small { font: 400 13px var(--body); color: var(--mute); margin-left: 8px }
+.about-note { font-size: 14px }
+/* The loop chart: the SVG is the plot only; its words are HTML around it (12 px and up at every width). */
+.lc { display: grid; gap: 4px }
+.lc-top, .lc-x { position: relative; height: 18px; margin-left: 40px; font: 12px var(--mono); color: var(--mute) }
+.lc-top span { position: absolute; white-space: nowrap; color: var(--signal-ink); padding-left: 4px }
+.lc-x span { position: absolute; white-space: nowrap; transform: translateX(-50%) }
+.lc-x span:first-child { transform: none }
+.lc-x span:last-child { transform: translateX(-100%) }
+.lc-mid { display: grid; grid-template-columns: 40px minmax(0, 1fr) }
+.lc-y { position: relative; font: 12px var(--mono); color: var(--mute) }
+.lc-y span { position: absolute; right: 6px; transform: translateY(-50%) }
+.lc-plot { position: relative; min-width: 0 }
+.lc-plot svg { display: block; width: 100%; height: 170px; touch-action: pan-y; cursor: crosshair }
+.lc-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--signal); border: 2px solid var(--paper); pointer-events: none }
+.lc-cap { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 4px 0 0; font-size: 12.5px; color: var(--mute) }
+.lc-key { display: inline-flex; align-items: center; gap: 6px; color: var(--review-ink) }
+.lc-key i { width: 14px; height: 10px; border: 1px solid var(--review); background: var(--review-soft) }
+@media (max-width: 600px) {
+  .lc-plot svg { height: 140px }
+  .lc-x span:nth-child(2), .lc-x span:nth-child(5) { display: none } /* 15 and 60 would touch their neighbours */
+}
 .chart { position: relative }
 .chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; cursor: crosshair }
-.chart text { font: 11px var(--mono); fill: var(--mute) }
+.chart text { font: 12px var(--mono); fill: var(--mute) } /* REQ-012 row 9: 11 → 12 px (TASK-055); at 375 the SVG scales down, and TASK-058 redraws the labels */
 .tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.5 var(--mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)) }
 .rounds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
 /* L6 (TASK-005): the round cards share 3 rows (title · what it did · review); finding cards 2; step cards 4. */
 .round { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 8px; font-size: 14.5px }
-.round .rev { background: var(--review-soft); border-radius: 8px; padding: 8px 10px; font-size: 14px; line-height: 1.55 }
+.round .rev { border: 1px solid var(--review); border-radius: 8px; padding: 8px 10px; font-size: 14px; line-height: 1.55 }
 .round .rev b { color: var(--review-ink) } /* L4 */
-.round .rev.ok { background: var(--ok-soft); color: var(--ok-ink); font-weight: 600 }
+.round .rev.ok { border-color: var(--ok); color: var(--ok-ink); font-weight: 600 } /* TASK-058: line-only */
 @media (max-width: 760px) { .rounds { grid-template-columns: 1fr } }
 .find { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
 .find div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 6px; font-size: 14.5px }
@@ -308,23 +367,20 @@ ul.guards .k { font: 600 13px var(--mono); color: var(--signal); padding-top: 2p
 .tier .box { display: grid; gap: 10px; align-content: start; font-size: 14.5px; min-width: 0 }
 .tier .lab { font: 500 12px var(--mono); letter-spacing: .06em; color: var(--mute); text-transform: uppercase }
 .tier ul { margin: 0; padding-left: 18px; display: grid; gap: 3px }
-.memo { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; display: flex }
-.memo i { display: block; height: 100%; background: var(--signal) } .memo i.b { background: var(--signal-soft) }
 .roles { display: flex; flex-wrap: wrap; gap: 6px }
 .role { font-size: 13px; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line) }
 .role.done { background: var(--ok-soft); color: var(--ok-ink); border-color: transparent; font-weight: 600 } /* L4 */
 .role.todo { background: var(--review-soft); color: var(--review-ink); border-color: transparent } /* L4 */
 .role.hold { color: var(--mute); border-style: dashed }
+.role svg { margin-right: 4px; vertical-align: -2px } /* REQ-012: the ✓ glyph became the set's check icon (TASK-055) */
 .money { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px; align-content: start }
 .money .v { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: 600 }
-.money .sep { grid-column: 1 / -1; border-top: 1px solid var(--line); margin: 2px 0 }
 .money .pay { color: var(--ok) } .money .nopay { color: var(--bad) } .money .meh { color: var(--review) }
 .tier .note { grid-column: 1 / -1; font-size: 13.5px; color: var(--mute) }
 .steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
 @media (max-width: 680px) { .steps { grid-template-columns: 1fr } }
 .steps > div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 6px; font-size: 14.5px }
 .steps b { font-family: var(--display); font-size: 16px }
-.caveat { font-size: 13.5px; color: var(--mute); display: grid; gap: 4px; margin: 0; padding-left: 18px }
 footer { font-size: 13px; color: var(--mute); border-top: 1px solid var(--line); padding-top: 18px }
 /* R-M1, the meeting study (TASK-040 comp, SPEC-011): the chapter's small visual and the "ดูตัวเลขทั้งหมด" fold. The visual
    and the arms table each switch on their own width (container queries), so a narrow block never scrolls sideways:
@@ -387,18 +443,7 @@ button.term.term-row { display: inline-flex; align-items: center; min-height: 44
   position: relative; padding-inline: 8px; margin-inline: -8px } /* TASK-051 (DEF-1): 8 px more tap on each side, into the "›" gaps; the text stays where it was */
 .site-crumbs a:hover { color: var(--ink) }
 .site-crumbs [aria-current] { color: var(--ink); font-weight: 600 }
-.site-story ol { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden }
-.site-story li + li { border-top: 1px solid var(--line) }
-.site-story a { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 2px 18px; align-items: baseline; min-height: 44px; padding: 12px 22px; text-decoration: none; color: inherit }
-.site-story a:hover { background: var(--bg) }
-.site-story .when { font: 500 12.5px var(--mono); color: var(--mute) }
-.site-story b { font: 600 16px/1.4 var(--display) }
-.site-doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
-@media (max-width: 560px) { .site-doors { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
-.site-doors a { display: grid; gap: 2px; align-content: center; min-height: 64px; padding: 12px 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit }
-.site-doors a:hover, .site-card:hover, .site-strip li a:hover, .site-search li a:hover { border-color: var(--signal) }
-.site-doors b { font: 600 16px var(--display) }
-.site-doors span { font-size: 13px }
+.site-card:hover, .site-strip li a:hover, .site-search li a:hover { border-color: var(--signal) }
 .site-latest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px }
 .site-latest section { gap: 12px }
 @media (max-width: 760px) { .site-latest { grid-template-columns: minmax(0, 1fr) } }
@@ -443,7 +488,7 @@ button.term.term-row { display: inline-flex; align-items: center; min-height: 44
 .site-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px }
 .site-items li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px }
 .site-prevnext { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 4px }
-.site-prevnext a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--signal-ink); font-weight: 600 }
+.site-prevnext a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; color: var(--signal-ink); font-weight: 600 }
 .site-side { position: sticky; top: 72px; display: grid; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px }
 .site-side h2 { font-size: 16px }
 .site-side ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
@@ -465,7 +510,6 @@ button.term.term-row { display: inline-flex; align-items: center; min-height: 44
 .as-h2 { font-size: clamp(23px, 3.2vw, 30px); line-height: 1.2; letter-spacing: normal }
 /* /techniques (TASK-048): one block per group; the card's name is a link with a 44-px tap area that leaves the card's
    rows where they were (padding out, margin back in), drawn above the next row so the whole area takes the press. */
-.tech-group { gap: 12px }
 .tech h3 a { position: relative; display: inline-block; padding-block: 11px; margin-block: -11px; color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px }
 .tech h3 a:hover { color: var(--signal-ink); text-decoration-color: currentColor }
 /* /techniques/[id]: the one card at the width it has in the 2-column list; its name is the page's h1 with the h3 look. */
@@ -477,10 +521,288 @@ button.term.term-row { display: inline-flex; align-items: center; min-height: 44
 .cmp-item .as-h3 { font-size: 16px }
 .tier .head .as-h3 { font-size: 20px }
 /* /glossary (TASK-049): the "คำศัพท์" list on the card it had inside its fold (details.fold > .in). */
-.site-glossary { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px }
 /* /studies: one card per study, the home's latest-study card. */
-.site-studies ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: 560px }
+.site-studies > ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: 760px }
+/* TASK-058: a study's headline bars (routes.tsx StudyBars), on its /studies card and above Meeting on its own page. The
+   card is one link: its title's link stretches over the whole card. */
+.st-card { position: relative; justify-items: stretch }
+.st-link { display: flex; align-items: center; min-height: 44px; color: inherit; text-decoration: none }
+.st-link::after { content: ""; position: absolute; inset: 0; border-radius: 14px }
+.st-card:has(.st-link:focus-visible) { outline: 2px solid var(--signal); outline-offset: 2px }
+.st-card:hover { border-color: var(--signal) }
+.st-bars { margin: 4px 0 0; display: grid; gap: 8px; min-width: 0; container-type: inline-size }
+.st-bars figcaption { font: 600 14px var(--display) }
+.st-bars ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
+.st-row { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)); gap: 4px 12px; align-items: center; font-size: 13px }
+.st-head { font-size: 12px; color: var(--mute) }
+.st-name { font-size: 13.5px; min-width: 0 }
+.st-cell { display: grid; gap: 2px; min-width: 0 }
+.st-cell .vz-track { height: 8px }
+.st-cell .num { font-size: 12.5px }
+.st-readout { margin-bottom: 20px }
+.st-readout .st-bars { padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px }
+@container (max-width: 520px) {
+  .st-row { grid-template-columns: repeat(4, minmax(0, 1fr)) }
+  .st-name { grid-column: 1 / -1 }
+  .st-head { display: none }
+}
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
 .grow { transform-origin: left center; transition: transform .9s cubic-bezier(.2, .7, .2, 1) }
 .grow.pre { transform: scaleX(0) }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } * { animation: none !important; transition: none !important } .grow.pre { transform: none } }
+
+/* ---- SPEC-013 (TASK-054): the viz primitives (vz-*, components/partials/viz) and the cv-* classes the comp pages began (TASK-054; the comp itself was removed in TASK-058).
+   New classes only; no rule above changes. Direction: TASK-054 § Implementation Notes 1 ("the bench readout"). ---- */
+.vz-ibox { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--signal-soft); color: var(--signal-ink) }
+.vz-ibox svg { width: 24px; height: 24px }
+.vz-ibox.ok { background: var(--ok-soft); color: var(--ok-ink) } .vz-ibox.review { background: var(--review-soft); color: var(--review-ink) }
+.vz-ibox.bad { background: var(--bad-soft); color: var(--bad-ink) } .vz-ibox.mute { background: var(--bg); color: var(--mute) }
+.vz-icard { display: flex; align-items: center; gap: 12px; min-height: 64px; min-width: 0; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; color: inherit; text-decoration: none }
+.vz-icard-t { display: grid; min-width: 0 }
+.vz-icard-t b { font: 600 16px/1.35 var(--display) }
+.vz-icard-t .mute { font-size: 13.5px; line-height: 1.5 }
+.vz-count { margin-left: auto; font: 600 20px/1 var(--display); font-variant-numeric: tabular-nums }
+a.vz-icard { transition: transform .15s ease-out, border-color .15s ease-out }
+a.vz-icard:hover { transform: translateY(-2px); border-color: var(--signal) }
+a.vz-icard:active { transform: none; background: var(--bg) }
+/* A track is outlined in --mute (≥ 3:1 on --paper in both schemes, AC-5), so a bar's 100% shows; the fill sits inside. */
+.vz-track { position: relative; display: block; height: 12px; min-width: 0; border: 1px solid var(--mute); border-radius: 99px; background: var(--bg); overflow: hidden }
+.vz-track > i { position: absolute; inset: 0 auto 0 0; background: var(--signal); border-radius: 99px }
+.vz-trackbox { position: relative; display: block; min-width: 0 }
+.vz-mark { position: absolute; top: -5px; bottom: -5px; border-left: 2px dashed var(--ink) } /* outside the track's clip, so the dashes show */
+.vz-bars { margin: 0; display: grid; gap: 12px; min-width: 0 }
+.vz-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline }
+.vz-row .vz-trackbox { grid-column: 1 / -1 }
+.vz-ticks { position: relative; display: block; height: 18px; margin-top: -6px; font: 500 12px var(--mono); color: var(--mute) }
+.vz-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap }
+.vz-ticks span:first-child { transform: none } .vz-ticks span:last-child { transform: translateX(-100%) }
+.vz-name { display: inline-flex; gap: 6px; align-items: center; min-width: 0; font-size: 14px }
+.vz-val { font: 500 13px var(--mono); text-align: right }
+.vz-row.mute .vz-track > i { background: var(--mute) } .vz-row.ok .vz-track > i { background: var(--ok) }
+.vz-row.review .vz-track > i { background: var(--review) } .vz-row.bad .vz-track > i { background: var(--bad) }
+.vz-marklabel { font-size: 12.5px; color: var(--mute) }
+.vz-gauge { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; min-height: 40px }
+.vz-gauge .vz-track { height: 14px }
+.vz-big { font: 600 26px/1 var(--display); font-variant-numeric: tabular-nums }
+.vz-cap { grid-column: 1 / -1; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--mute) }
+.vz-gauge.warn .vz-track > i { background: var(--review) } .vz-gauge.warn .vz-cap { color: var(--review-ink) }
+.vz-pips { display: inline-flex; gap: 6px; align-items: center; min-height: 24px }
+.vz-pips i { display: block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--mute) }
+.vz-pips i.y { background: var(--ok); border-color: var(--ok) }
+.vz-pips i.h { background: linear-gradient(90deg, var(--ok) 50%, transparent 50%); border-color: var(--ok) }
+.vz-pips .num { margin-left: 4px; font: 600 14px var(--mono) }
+.vz-fold > summary { list-style: none; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; min-height: 44px; padding: 10px 12px; margin: 0 -12px; border-radius: 10px }
+.vz-fold > summary::-webkit-details-marker { display: none }
+.vz-fold > summary:hover { background: var(--bg) }
+.vz-lead { max-width: 66ch }
+.vz-fold.cut[open] > summary .vz-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+.vz-fold.cut[open] > summary { justify-content: flex-end } /* the open fold's whole text is right below; its chevron stays */
+.vz-chev { flex: none; margin-top: 3px; color: var(--mute); transition: transform .15s ease-out }
+.vz-fold[open] > summary .vz-chev { transform: rotate(180deg) }
+.vz-fold-body { display: grid; gap: 8px; padding: 12px 14px; background: var(--bg); border-radius: 10px; animation: vz-in .15s ease-out }
+@keyframes vz-in { from { opacity: 0; transform: translateY(-4px) } }
+.vz-tl-box { container-type: inline-size; min-width: 0 }
+.vz-tl { list-style: none; margin: 0; padding: 0; display: grid }
+.vz-tl-i { position: relative; min-width: 0 }
+.vz-tl-i:not(:last-child)::before { content: ""; position: absolute; left: 17px; top: 26px; bottom: -26px; border-left: 2px solid var(--line) }
+.vz-tl-a { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; min-height: 44px; padding: 8px 0; color: inherit; text-decoration: none }
+a.vz-tl-a:hover b { color: var(--signal-ink) }
+.vz-node { position: relative; z-index: 1; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--paper); border: 2px solid var(--signal); color: var(--signal-ink) }
+.vz-node svg { width: 20px; height: 20px }
+.vz-tl-i.ok .vz-node { border-color: var(--ok); color: var(--ok-ink) } .vz-tl-i.review .vz-node { border-color: var(--review); color: var(--review-ink) }
+.vz-tl-i.bad .vz-node { border-color: var(--bad); color: var(--bad-ink) } .vz-tl-i.mute .vz-node { border-color: var(--mute); color: var(--mute) }
+.vz-tl-t { display: grid; gap: 2px; min-width: 0; padding-top: 4px }
+.vz-tl-t b { font: 600 16px/1.4 var(--display) }
+.vz-tl-t .vz-fold > summary { margin: 0; padding: 8px 0 } /* no bleed into the next column of a horizontal timeline */
+.vz-when { font: 500 12.5px var(--mono); color: var(--mute) }
+@container (min-width: 720px) {
+  .vz-tl { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px }
+  .vz-tl-a { grid-template-columns: minmax(0, 1fr); gap: 8px }
+  .vz-tl-i:not(:last-child)::before { left: 18px; right: -30px; top: 25px; bottom: auto; border-left: 0; border-top: 2px solid var(--line) }
+}
+.vz-ba { margin: 0; display: grid; gap: 12px; min-width: 0 }
+.vz-ba-pair { display: grid; gap: 6px }
+.vz-ba-name { font-size: 13px; color: var(--mute) }
+.vz-ba-row { display: grid; grid-template-columns: 3em minmax(0, 1fr); gap: 4px 10px; align-items: center }
+.vz-ba-k { grid-row: span 2; align-self: start; font-size: 13px; line-height: 1.6; color: var(--mute) }
+.vz-ba-row.after .vz-ba-k { color: var(--signal-ink); font-weight: 600 }
+.vz-ba-row .vz-trackbox, .vz-ba-row .vz-pips, .vz-ba-v { grid-column: 2 }
+.vz-ba-v { font-size: 14.5px; line-height: 1.55; font-variant-numeric: tabular-nums; overflow-wrap: anywhere }
+.vz-ba-v svg { margin-right: 4px; vertical-align: -3px; color: var(--review-ink) }
+.vz-ba-row.before .vz-track > i { background: var(--mute) }
+/* A run stopped by its time cap is drawn hatched, with a clock icon by its words: it did not finish there. */
+.vz-ba-row.stopped .vz-track > i { background: repeating-linear-gradient(135deg, var(--mute) 0 5px, transparent 5px 9px) }
+.vz-ba-row.after .vz-pips i.y { background: var(--signal); border-color: var(--signal) }
+.vz-ba-row.after .vz-pips i.h { background: linear-gradient(90deg, var(--signal) 50%, transparent 50%); border-color: var(--signal) }
+.vz-ba-row.before .vz-pips i.y { background: var(--mute); border-color: var(--mute) }
+.vz-ba-row.before .vz-pips i.h { background: linear-gradient(90deg, var(--mute) 50%, transparent 50%); border-color: var(--mute) }
+.vz-ba-arrow { margin-left: calc(3em + 10px); color: var(--mute) }
+
+/* cv-*: born in the comp (TASK-054), now used by the live pages (TASK-055…057); the comp-only ones were swept in TASK-058. */
+.cv-head { display: grid; gap: 10px; min-width: 0 }
+.cv-readout { display: grid; gap: 18px; min-width: 0; padding: 20px 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px }
+.cv-readout > h2, .cv-sec > h2 { display: flex; gap: 10px; align-items: center }
+.cv-sec { display: grid; gap: 16px; min-width: 0 }
+.cv-say { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--signal-soft); border-radius: 12px; font-weight: 500 }
+.cv-say svg { flex: none; margin-top: 3px; color: var(--signal-ink) }
+.cv-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+.cv-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+@media (max-width: 760px) { .cv-grid3 { grid-template-columns: minmax(0, 1fr) } .cv-grid3.cv-doors { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (max-width: 560px) { .cv-doors .vz-icard { padding: 10px; gap: 8px } } /* the home's doors stay 2 across on a phone, as the old grid did (critique A7) */
+@media (max-width: 560px) { .cv-grid2 { grid-template-columns: minmax(0, 1fr) } .cv-readout { padding: 16px } }
+.cv-card { display: grid; gap: 12px; align-content: start; min-width: 0; padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px }
+.cv-card-head { display: flex; gap: 12px; align-items: center; min-width: 0 }
+.cv-card-head > span:last-child { display: grid; min-width: 0 }
+.cv-card h3 { font-size: 17px; line-height: 1.35 }
+.cv-card h3 a { color: inherit; text-decoration: none }
+.cv-card h3 a:hover { color: var(--signal-ink); text-decoration: underline }
+.cv-k { font-size: 13px; color: var(--mute) }
+.cv-link { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; font-weight: 600; color: var(--signal-ink); text-decoration: none }
+.cv-link:hover { text-decoration: underline }
+.cv-card h3 a { position: relative; display: inline-block; padding: 11px 0; margin: -11px 0 }
+.cv-stat { display: grid; gap: 6px; min-width: 0 }
+.cv-stat ul, .vz-fold-body ul { margin: 0; padding-left: 1.2em; font-size: 14.5px }
+.cv-card .tag { margin: 0; font-size: 14px; line-height: 1.5; color: var(--mute) }
+.cv-model-name { display: grid; gap: 0 }
+.cv-model-name .mute { font: 500 15px/1.3 var(--display) }
+.cv-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px }
+@media (max-width: 560px) { .cv-index { grid-template-columns: repeat(2, minmax(0, 1fr)) } .cv-index .vz-icard { padding: 10px; gap: 8px } }
+.cv-list { list-style: none; margin: 0; padding: 0 }
+.cv-search label { display: inline-flex; gap: 8px; align-items: center }
+.cv-search label svg { color: var(--signal-ink) }
+.cv-strip li a .vz-track { grid-column: 2 / -1; height: 8px }
+.cv-paid { display: flex; gap: 8px; align-items: center; margin: 0; font-size: 14.5px }
+.cv-paid.ok { color: var(--ok-ink) } .cv-paid.review { color: var(--review-ink) } .cv-paid.bad { color: var(--bad-ink) }
+.cv-spec > summary h2 { margin: 0 }
+.vz-node:empty::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor }
+/* home */
+@media (max-width: 560px) { .cv-hero h1 { font-size: 26px; line-height: 1.15 } .cv-hero p { font-size: 15px; line-height: 1.6 } .cv-hero { gap: 8px } }
+.cv-models .cv-card.best { border: 2px solid var(--ok) }
+.cv-legend { margin: -6px 0 0 }
+.cv-verdict b { color: var(--ok-ink) }
+/* The home readout's order: at 375 the cards come first (a gauge in the first screen), then the level steps and the
+   verdict; at ≥ 761 px the steps and the verdict lead, then the legend and the cards (TASK-055, critique A7). */
+.cv-readout > .cv-steps { order: 5 } .cv-readout > .cv-verdict { order: 6 }
+@media (min-width: 761px) { .cv-readout > .cv-steps { order: 1 } .cv-readout > .cv-verdict { order: 2 } .cv-readout > .cv-legend { order: 3 } .cv-readout > .cv-models { order: 4 } }
+.cv-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px }
+.cv-steps li { display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; color: var(--mute) }
+.cv-steps li b { font-weight: 600; color: var(--ink) }
+.cv-steps li span { font-size: 12.5px }
+.cv-steps li svg { flex: none }
+.cv-steps li.ok { color: var(--ok-ink); background: var(--ok-soft); border-color: transparent }
+.cv-steps li.signal { color: var(--signal-ink); background: none; border: 2px solid var(--signal) } /* TASK-058: line-only, no wash under the edge (not-ai-look #4) */
+.cv-steps li.mute { border-style: dashed }
+.cv-verdict { font: 600 clamp(18px, 2.4vw, 22px)/1.4 var(--display) }
+.cv-verdict .vz-lead { font: inherit }
+/* techniques */
+.cv-tech .gain { font: 600 16px/1.5 var(--display); color: var(--signal-ink) }
+.cv-tech .tid { font: 600 13px var(--mono); color: var(--signal-ink) }
+.cv-tech .tech-top { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: start } /* TASK-072 R3: the group icon beside the id and name */
+.cv-tech .tech-top > .vz-ibox { grid-row: span 2 } .cv-tech .tech-top > h3 { margin: 0 }
+.cv-tech .ev-links { display: flex; flex-wrap: wrap; gap: 0 16px }
+.cv-tech .ev-links a { display: inline-flex; align-items: center; min-height: 44px }
+/* /techniques/[id]: the card is the page (TASK-056): its head names the group, its name is the h1 */
+.cv-tech.own .tech-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px }
+.cv-tech.own .group { font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--mute); border: 1px solid var(--line); border-radius: 99px; padding: 0 10px }
+.cv-tech.own h1 { margin: 0 }
+.cv-dl { margin: 0; display: grid; grid-template-columns: 5em minmax(0, 1fr); gap: 6px 12px; font-size: 14.5px }
+.cv-dl dt { color: var(--mute); font-size: 13px; line-height: 1.7 }
+.cv-dl dd { margin: 0; max-width: 66ch; overflow-wrap: anywhere }
+@media (max-width: 560px) { .cv-dl { grid-template-columns: minmax(0, 1fr); gap: 0 } .cv-dl dd { margin-bottom: 8px } }
+/* hardware */
+.cv-ctrl { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center }
+.cv-ctrl .use-item { display: flex; gap: 12px; align-items: center; min-width: min(100%, 320px) }
+.cv-roles { display: flex; flex-wrap: wrap; gap: 6px }
+.cv-role { display: inline-flex; gap: 4px; align-items: center; padding: 2px 10px; border-radius: 99px; font-size: 13px; border: 1px solid var(--line) }
+.cv-role.done { background: var(--ok-soft); color: var(--ok-ink); border-color: transparent }
+.cv-role.hold { border-style: dashed }
+.cv-tier.now { border: 2px solid var(--signal) }
+.cv-now { justify-self: start; display: inline-flex; padding: 2px 10px; border-radius: 99px; background: var(--signal-soft); color: var(--signal-ink); font: 600 12px var(--mono) }
+.cv-kv { margin: 0; display: grid; grid-template-columns: 5em minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 14.5px }
+.cv-tier .cv-kv { grid-template-columns: minmax(0, 1fr) auto }
+.cv-drawn > li { display: grid; gap: 8px; align-content: start; padding: 12px 0; border-top: 1px solid var(--line) }
+.cv-drawn-a { display: grid; gap: 2px; min-height: 44px; color: inherit; text-decoration: none }
+.cv-drawn-a b { font: 600 15px/1.45 var(--display); color: var(--signal-ink) }
+.cv-drawn .tid { font: 600 13px var(--mono); color: var(--signal-ink) }
+.cv-drawn-a:hover b { text-decoration: underline }
+.cv-chips { display: flex; flex-wrap: wrap; gap: 8px }
+.cv-chip { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: inherit; text-decoration: none; font-size: 14px }
+.cv-chip svg { flex: none; color: var(--signal-ink) }
+.cv-chip b { font: 600 14px var(--mono) }
+.cv-chip:hover { border-color: var(--signal) }
+.cv-tier.ref { border-style: dashed; background: var(--bg) }
+.cv-caveat { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 14px; color: var(--mute) }
+.cv-caveat li { max-width: 66ch }
+/* glossary */
+.cv-terms { list-style: none; margin: 0; padding: 4px 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px }
+.cv-terms > li + li { border-top: 1px solid var(--line) }
+.cv-terms .vz-fold > summary { margin: 0 -8px; padding: 10px 8px }
+.cv-terms .vz-fold-body { margin-bottom: 10px }
+.cv-terms b { font-weight: 600 }
+.cv-terms :target, .cv-terms .vz-fold:target > summary { background: var(--signal-soft) }
+@media (min-width: 900px) { .cv-terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px } .cv-terms > li + li { border-top: 0 } .cv-terms > li { border-bottom: 1px solid var(--line) } }
+/* /glossary on a wide screen (TASK-055, critique A7): the term's line shows under its name straight from the server, by
+   CSS alone (no open-after-load jump), as a plain name → line list like the old page; the row still opens on a tap. */
+.cv-term-wide { display: none; margin: 0 0 10px; font-size: 14.5px; color: var(--mute) }
+@media (min-width: 900px) {
+  .cv-terms details:not([open]) + .cv-term-wide { display: block }
+  .cv-terms details:not([open]) > summary { padding: 10px 8px 0 } /* still min-height 44 (a tap target) */
+  .cv-terms details:not([open]) .vz-chev { display: none }
+}
+.cv-gloss { display: grid; gap: 24px; min-width: 0 }
+.cv-chip .vz-jump { color: var(--mute) }
+
+/* ---- TASK-057 (REQ-012 build 3/4): /runs, a run, /clips, /compare in the comp's direction, with viz/ only ---- */
+/* The verdict pill carries its icon (shape as well as colour). */
+.pill { display: inline-flex; gap: 4px; align-items: center }
+.pill svg { flex: none }
+/* /runs: a run's time and cost as two small bars, each on one scale across the runs; the 4th column of .log. */
+.run-meters { display: grid; gap: 6px; width: 220px; min-width: 0 }
+.run-meters .rm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline }
+.run-meters .rm-k { font-size: 12.5px; color: var(--mute) }
+.run-meters .rm-v { font: 500 12.5px var(--mono); text-align: right }
+.run-meters .vz-trackbox { grid-column: 1 / -1 }
+.run-meters .vz-track { height: 8px }
+@media (max-width: 600px) { .run-meters { width: auto } }
+/* A run's สรุป tab: the readout first (the VRAM gauge, then each item's minutes and pips), then the folded words. */
+.run-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px 20px }
+.run-item .vz-pips { margin-top: 4px }
+.run-item.stopped .vz-track > i, .cmp td.stopped .vz-track > i { background: repeating-linear-gradient(135deg, var(--mute) 0 5px, transparent 5px 9px) }
+.site-summary li .vz-fold { display: block }
+/* /clips and a run's คลิป tab: the player first, the clips as icon rows (beside the player at ≥ 900 px). */
+.clip-list { display: grid; gap: 6px; align-content: start }
+.clip-list button { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; min-height: 44px; width: 100%; padding: 8px 14px; border-radius: 10px; text-align: left; font-size: 14.5px }
+.clip-list button > svg { margin-top: 3px }
+.cmp-sum { margin: 4px 0 18px } .cmp-sum > .cv-k { margin: 0 0 6px } /* TASK-072 R2: the pair's points as bars, first screen */
+.clip-t { display: grid; gap: 4px; justify-items: start; min-width: 0 } /* TASK-072 R4: title full width, the pill under it */
+.clip-name { max-width: 100%; overflow-wrap: anywhere }
+/* TASK-076 DEF-6 (the owner, TEST-012 run 2): the 2-line clamp is for phones only; wider, the title shows whole. */
+@media (max-width: 560px) { .clip-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden } }
+.clip-list button svg { flex: none; color: var(--signal-ink) }
+.clip-list button[aria-selected="true"] svg { color: currentColor }
+.clip-list button[aria-selected="true"] .pill { color: inherit } /* TASK-072: palette ค pills are line-only (no tint), so on the filled current row the chip takes the row's words colour (paper on signal 9.55) */
+.clip-list button .pill { margin-left: 0 }
+.clip-list button .pill svg { color: inherit }
+@media (min-width: 900px) {
+  .player.with-list { grid-template-columns: minmax(0, 1fr) 260px; align-items: start }
+}
+/* /compare: the run headers are column headers; the minutes row draws the pair as bars on the pair's cap. */
+/* The two run columns are equal (35% each, the corner 30%), so the minutes bars keep their true proportion (critique A,
+   P1: as th the headers had taken .cmp th's 30%). */
+.cmp th.who { font-family: var(--display); font-weight: 400; color: var(--ink); width: 35%; text-wrap: balance } /* TASK-058: the model line wraps by word groups, not one token a line */
+.cmp-cap { display: block; margin-top: 2px } /* the bars' 100% under the row's name (PM, TASK-057 words 7) */
+.cmp thead td.corner { width: 30% }
+.cmp td .vz-trackbox { margin-top: 6px }
+.cmp td .vz-track { height: 8px }
+/* At 375 the pair stacks under each metric: the metric's name on its own line, the two runs side by side below it, so
+   both are seen with no sideways scroller. The table's roles (Compare.tsx) keep its meaning in this grid. */
+@media (max-width: 560px) {
+  .cmp .scroll { overflow: visible }
+  .cmp table { min-width: 0 }
+  .cmp table, .cmp thead, .cmp tbody { display: block }
+  .cmp tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; border-bottom: 1px solid var(--line) }
+  .cmp th, .cmp td { width: auto; border-bottom: 0 }
+  .cmp tbody th[scope="row"] { grid-column: 1 / -1; padding-bottom: 0 }
+  .cmp thead td.corner { display: none }
+  .cmp tr:last-child { border-bottom: 0 }
+}

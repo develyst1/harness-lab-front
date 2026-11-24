@@ -10,8 +10,10 @@ import { Glossary, Story } from "@/components/partials/lab/Story";
 import { TechCard, Techniques } from "@/components/partials/lab/Techniques";
 import {
   aboutView, clipsView, compareView, glossaryView, hardwareView, homeParams, homeView, parseSort, parseTab, runsView, runView, STUDY_ID,
-  storyView, studiesView, studyView, techniquesView, techniqueView,
+  storyView, studiesView, studyBars, type StudyBar, studyView, techniquesView, techniqueView,
 } from "@/lib/lab/site";
+import { MEETING_WORDS } from "@/lib/lab/meeting";
+import { Track } from "@/components/partials/viz";
 import type { Page } from "@/lib/lab/types";
 import { toView } from "@/lib/lab/view";
 import { Crumbs } from "./Crumbs";
@@ -67,10 +69,11 @@ export async function TechniquesRoute() {
   const lab = await loadLab();
   if (!lab) return loadError;
   const { head, groups } = techniquesView(toView(lab));
-  return <Techniques head={head} groups={groups} titleAs="h1" />;
+  return <Techniques head={head} groups={groups} />;
 }
 
-/** /techniques/[id]: crumbs, then the one card, whose name is the page's h1. An unknown id → the 404 page. */
+/** /techniques/[id]: crumbs, then the one card, whose name is the page's h1 and whose drawing leads (TASK-056). An
+ * unknown id → the 404 page. */
 export async function TechniqueRoute({ params }: { params: Promise<{ id: string }> }) {
   const lab = await loadLab();
   if (!lab) return loadError;
@@ -81,9 +84,7 @@ export async function TechniqueRoute({ params }: { params: Promise<{ id: string 
   return (
     <div className="site-tech">
       <Crumbs trail={[{ label: W.home, href: "/" }, { label: areaLabel("techniques"), href: "/techniques" }, { label: t.id }]} />
-      <ol className="techs">
-        <TechCard t={t} groups={head.groups} own />
-      </ol>
+      <TechCard t={t} own={{ groups: head.groups }} />
     </div>
   );
 }
@@ -96,7 +97,43 @@ export async function CompareRoute() {
   return <Compare runs={runs} compare={compare} cardMiB={cardMiB} titleAs="h1" />;
 }
 
-/** /studies: the nav label as h1, then one card per study (as the home's latest-study card); none without a meeting. */
+/** A study's headline as bars (TASK-058, SPEC-013 row 6): one row per way of working (the meeting visual's arms), one
+ * small bar per meeting, each with its found/N beside it, the numbers through the section's own display rules. The
+ * caption is the meeting visual's own title. Its text equivalent is itself: the label and every count are real text, and
+ * each bar's meeting is named for a screen reader. Meeting headings show over the columns where there is room. */
+function StudyBars({ bars }: { bars: StudyBar[] }) {
+  const heads = bars[0]?.cells.map((c) => c.heading) ?? [];
+  // One picture for a screen reader (not-ai-look: the readout is the page's picture), its label holding every number.
+  const aria = `${MEETING_WORDS.visualTitle}: ${bars.map((b) => `${b.label} ${b.cells.map((c) => `${c.heading} ${c.text}`).join(", ")}`).join("; ")}`;
+  return (
+    <figure className="st-bars" role="img" aria-label={aria}>
+      <figcaption>{MEETING_WORDS.visualTitle}</figcaption>
+      <div className="st-row st-head" aria-hidden="true">
+        <span />
+        {heads.map((h) => (
+          <span key={h}>{h}</span>
+        ))}
+      </div>
+      <ul>
+        {bars.map((b) => (
+          <li key={b.id} className="st-row">
+            <span className="st-name">{b.label}</span>
+            {b.cells.map((c) => (
+              <span key={c.key} className="st-cell">
+                <span className="sr">{c.heading}</span>
+                <Track pct={c.share === null ? 0 : c.share * 100} />
+                <span className="num">{c.text}</span>
+              </span>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </figure>
+  );
+}
+
+/** /studies: the nav label as h1, then one card per study (the home's latest-study card) with its headline bars (TASK-058);
+ * none without a meeting. The title is the card's link; the whole card answers a tap. */
 export async function StudiesRoute() {
   const lab = await loadLab();
   if (!lab) return loadError;
@@ -107,11 +144,12 @@ export async function StudiesRoute() {
       {studies.length > 0 && (
         <ul>
           {studies.map((s) => (
-            <li key={s.id}>
-              <Link href={`/studies/${s.id}`} className="site-card">
+            <li key={s.id} className="site-card st-card">
+              <Link href={`/studies/${s.id}`} className="st-link">
                 <b>{s.titleTh}</b>
-                <span className="mute">{s.questionTh}</span>
               </Link>
+              <span className="mute">{s.questionTh}</span>
+              <StudyBars bars={s.bars} />
             </li>
           ))}
         </ul>
@@ -134,6 +172,10 @@ export async function StudyRoute({ params }: { params: Promise<{ id: string }> }
       <Crumbs trail={[{ label: W.home, href: "/" }, { label: areaLabel("studies"), href: "/studies" }, { label: titleTh }]} />
       <h1 className="sr">{titleTh}</h1>
       <Grow />
+      {/* TASK-058: the headline drawn first, as new chrome around Meeting.tsx, which is unchanged (REQ-010 Contract 3). */}
+      <div className="st-readout">
+        <StudyBars bars={studyBars(view.meeting)} />
+      </div>
       <Meeting meeting={view.meeting} glossary={view.glossary} />
     </>
   );
@@ -146,27 +188,26 @@ export async function StoryRoute() {
   return <Story explain={storyView(toView(lab)).explain} titleAs="h1" />;
 }
 
-/** /glossary: the nav label as h1, then every entry (page, then the meeting's), anchored term-<n> (D5). */
-export async function GlossaryRoute() {
+/** /glossary: the nav label as h1, then every entry (page, then the meeting's), anchored term-<n> (D5), searchable by
+ * `?q=` (REQ-012 row 3, TASK-055). */
+export async function GlossaryRoute({ searchParams }: { searchParams: Search }) {
   const lab = await loadLab();
   if (!lab) return loadError;
+  const { q } = await searchParams;
   return (
-    <section>
+    <div className="cv-gloss">
       <h1 className="as-h2">{areaLabel("glossary")}</h1>
-      <div className="site-glossary">
-        <Glossary terms={glossaryView(toView(lab)).terms} />
-      </div>
-    </section>
+      <Glossary groups={glossaryView(toView(lab)).groups} initial={typeof q === "string" ? q : ""} />
+    </div>
   );
 }
 
-/** /hardware: today's สเปกและงบ; the section title is the page's h1 (D11). Plan's prop is typed `Page`; it reads only the
- * two keys the slice keeps (the cast, as AnswerLinks does). */
+/** /hardware: today's สเปกและงบ, answer first (TASK-056); the section title is the page's h1 (D11). */
 export async function HardwareRoute() {
   const lab = await loadLab();
   if (!lab) return loadError;
   const { tiers, meta, page } = hardwareView(toView(lab));
-  return <Plan tiers={tiers} meta={meta} page={page as Page} titleAs="h1" />;
+  return <Plan tiers={tiers} meta={meta} page={page} />;
 }
 
 /** /about: today's เบื้องหลัง with the bar growth (D6); the section title is the page's h1 (D11). Behind reads only

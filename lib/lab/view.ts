@@ -46,7 +46,7 @@ const page = (p: Page) => {
     answer: pick(p.answer, ["kicker", "verdict", "verdictEmphasis", "modelCards", "how"]),
     ladder: { title: p.ladder.title, note: p.ladder.note, levels: p.ladder.levels.map((l) => pick(l, ["level", "means", "test", "status"])) },
     clips: pick(p.clips, ["kicker", "title", "note", "noClip"]),
-    history: pick(p.history, ["kicker", "title", "intro"]),
+    history: pick(p.history, ["kicker", "title", "intro", "missingNote"]),
     compare: pick(p.compare, ["kicker", "title", "note"]),
     spec: pick(p.spec, ["title", "rows"]),
     plan: {

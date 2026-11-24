@@ -17,6 +17,7 @@ import "./globals.css";
 import { Footer } from "@/components/partials/lab/Footer";
 import { SiteNav } from "@/components/partials/site/SiteNav";
 import { loadLab } from "@/lib/lab/load";
+import { MEETING_WORDS } from "@/lib/lab/meeting";
 
 // The reference page's three fonts, downloaded at build and served by the app (no Google call at run time).
 // globals.css reads them through these variables (--display, --body, --mono).
@@ -60,7 +61,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <SiteNav />
           <main className="wrap">
             {children}
-            {lab && <Footer text={lab.page.footer} />}
+            {lab && <Footer text={lab.page.footer} studyText={MEETING_WORDS.logsNote} />}
           </main>
         </MantineProvider>
       </body>
