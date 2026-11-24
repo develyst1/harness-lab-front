@@ -179,6 +179,62 @@ export interface Technique {
   date: string;
 }
 
+/** pack v3.9 meeting.json → fixtures: one synthetic meeting of the R-M1 study (never named by id on screen). */
+export interface MeetingFixture {
+  id: string;
+  minutes: number;
+  /** N: the action items in the meeting's answer key. */
+  actions: number;
+  asrSec?: number;
+}
+
+/** One way of working (arm) of R-M1. `found[fixtureId]`: null = no try finished (cut) or not run; shown as —. */
+export interface MeetingArm {
+  id: string;
+  label?: string;
+  labelTh: string;
+  kind: "local" | "hybrid" | "talent";
+  found: Record<string, number | null>;
+  /** English notes on cut tries; never sent to the browser. */
+  cut?: Record<string, string>;
+  /** [finished, tries]. */
+  done: [number, number];
+  secShort?: number;
+  secLong?: number;
+  /** [lo, hi] USD per meeting. */
+  usdPerMeeting: [number, number];
+}
+
+export interface MeetingCutRate {
+  model: string;
+  cut: number;
+  calls: number;
+}
+
+/** pack v3.9 meeting.json (R-M1). The browser gets only SPEC-011 § Contract 3's fields (lib/lab/view.ts); the back
+ * stores and serves it without `product` and `source`. The other optional keys are for reference only. */
+export interface Meeting {
+  id?: string;
+  date: string;
+  title?: string;
+  titleTh: string;
+  question?: string;
+  questionTh: string;
+  how?: string;
+  howTh: string;
+  costUsd: number;
+  capUsd: number;
+  cutWasteUsd: number;
+  costNoteTh: string;
+  fixtures: MeetingFixture[];
+  arms: MeetingArm[];
+  foundNote?: string;
+  foundNoteTh?: string;
+  cutRates: MeetingCutRate[];
+  findings: { en?: string; th: string }[];
+  next: { th: string; usd: number }[];
+}
+
 /** The body of `GET /api/lab` from pack v3 on. Keys the front does not know are ignored. */
 export interface LabData {
   runs: Run[];
@@ -186,4 +242,6 @@ export interface LabData {
   meta: Meta;
   page: Page;
   techniques: Technique[];
+  /** pack v3.9 (SPEC-011): optional — a back without meeting.json sends null, and the page shows no R-M1 section. */
+  meeting?: Meeting | null;
 }

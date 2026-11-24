@@ -24,7 +24,15 @@ function Mark({ caught }: { caught: boolean | null }) {
 
 const pickClasses = { input: "pick-input", dropdown: "pick-dropdown", option: "pick-option" };
 
-export function Compare({ runs, compare, cardMiB }: { runs: Run[]; compare: Page["compare"]; cardMiB: number }) {
+export function Compare({ runs, compare, cardMiB, titleAs: Title = "h2" }: {
+  runs: Run[];
+  compare: Page["compare"];
+  cardMiB: number;
+  /** SPEC-012 D11: "h1" where the section is the page (/compare); it keeps the h2 look, and the block titles are then h2
+   * with the h3 look, so no level is skipped (TASK-048 Q3). */
+  titleAs?: "h1" | "h2";
+}) {
+  const Block = Title === "h1" ? "h2" : "h3";
   const has = (id: string) => runs.some((r) => r.id === id);
   const [aId, setA] = useState(has("R3") ? "R3" : runs[0]?.id);
   const [bId, setB] = useState(has("R4a") ? "R4a" : runs[1]?.id ?? runs[0]?.id);
@@ -35,7 +43,7 @@ export function Compare({ runs, compare, cardMiB }: { runs: Run[]; compare: Page
   return (
     <section id="compare">
       <div className="run">{compare.kicker}</div>
-      <h2>{compare.title}</h2>
+      <Title className={Title === "h1" ? "as-h2" : undefined}>{compare.title}</Title>
       <div className="cmp">
         <div className="pick">
           <Select data={data} value={aId} onChange={(v) => v && setA(v)} allowDeselect={false} withCheckIcon={false}
@@ -48,7 +56,7 @@ export function Compare({ runs, compare, cardMiB }: { runs: Run[]; compare: Page
         {a && b &&
           blocks.map((block) => (
             <div className="cmp-item" key={block.item}>
-              <h3>{block.label}</h3>
+              <Block className={Title === "h1" ? "as-h3" : undefined}>{block.label}</Block>
               <div className="scroll">
                 <table>
                   <thead>

@@ -10,7 +10,16 @@ import type { Meta, Page, Tier } from "@/lib/lab/types";
 // reference's own labels (SA-decided, TASK-005 § Questions 4).
 const PAID = "จ่ายไปแล้ว";
 
-export function Plan({ tiers, meta, page }: { tiers: Tier[]; meta: Meta; page: Page }) {
+export function Plan({ tiers, meta, page, titleAs: Title = "h2" }: {
+  tiers: Tier[];
+  meta: Meta;
+  page: Page;
+  /** SPEC-012 D11: "h1" where the section is the page (/hardware); it keeps the h2 look, and the h3s are then h2 with
+   * the h3 look, so no level is skipped (TASK-049 Q1). */
+  titleAs?: "h1" | "h2";
+}) {
+  const Sub = Title === "h1" ? "h2" : "h3";
+  const subClass = Title === "h1" ? "as-h3" : undefined;
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(22);
   const { plan, spec } = page;
@@ -18,11 +27,11 @@ export function Plan({ tiers, meta, page }: { tiers: Tier[]; meta: Meta; page: P
   return (
     <section id="plan">
       <div className="run">{plan.kicker}</div>
-      <h2>{plan.title}</h2>
+      <Title className={Title === "h1" ? "as-h2" : undefined}>{plan.title}</Title>
       <p>{plan.lead}</p>
 
       <div className="spec">
-        <h3>{spec.title}</h3>
+        <Sub className={subClass}>{spec.title}</Sub>
         <dl>
           {spec.rows.map(([k, v]) => (
             <Fragment key={k}>
@@ -60,12 +69,12 @@ export function Plan({ tiers, meta, page }: { tiers: Tier[]; meta: Meta; page: P
 
       <div className="ladder">
         {tiers.map((t) => (
-          <TierCard key={t.id} t={t} hours={hours} days={days} rates={rates} />
+          <TierCard key={t.id} t={t} hours={hours} days={days} rates={rates} sub={Sub} />
         ))}
       </div>
       <p className="proved">{planSay(tiers, hours, days, rates, plan.paybackSayFast, plan.paybackSaySlow)}</p>
 
-      <h3>{plan.nextTitle}</h3>
+      <Sub className={subClass}>{plan.nextTitle}</Sub>
       <div className="steps">
         {plan.next.map((s) => (
           <div key={s.kicker}>
@@ -88,12 +97,12 @@ export function Plan({ tiers, meta, page }: { tiers: Tier[]; meta: Meta; page: P
   );
 }
 
-function TierCard({ t, hours, days, rates }: { t: Tier; hours: number; days: number; rates: Rates }) {
+function TierCard({ t, hours, days, rates, sub: Sub }: { t: Tier; hours: number; days: number; rates: Rates; sub: "h2" | "h3" }) {
   const m = tierMoney(t, hours, days, rates);
   return (
     <article className={`tier${t.now ? " now" : ""}${t.ref ? " ref" : ""}`}>
       <div className="head">
-        <h3>{t.name}</h3>
+        <Sub className={Sub === "h2" ? "as-h3" : undefined}>{t.name}</Sub>
         <span className="budget">{t.budget}</span>
         {t.now && <span className="pill ok">เราอยู่ตรงนี้</span>}
       </div>

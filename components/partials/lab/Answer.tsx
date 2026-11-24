@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { NOT_MEASURED } from "@/lib/lab/compare";
 import { firstItem } from "@/lib/lab/items";
 import type { Item, Page, Run } from "@/lib/lab/types";
@@ -6,8 +7,9 @@ import { Ladder } from "./Ladder";
 
 // คำตอบ: layout of reference/index.html lines 233–241, cards after its template at lines 467–478. Text from page.json →
 // answer (the bold part of the verdict = `verdictEmphasis`); card rows = `answer.modelCards`; the gauge's card size,
-// comfort line and title = `behind.gauge`. Card labels are the reference template's own text.
-export function Answer({ runs, page, onPlay }: { runs: Run[]; page: Page; onPlay: (rowId: string) => void }) {
+// comfort line and title = `behind.gauge`. Card labels are the reference template's own text. Each card's "▶ ดูคลิป" is a
+// real link, to `clipHref(row id)` (SPEC-012 § Rework round 1: the run's คลิป tab).
+export function Answer({ runs, page, clipHref }: { runs: Run[]; page: Page; clipHref: (rowId: string) => string }) {
   const { answer, behind, ladder } = page;
   const cards = answer.modelCards
     .map((id) => runs.find((r) => r.id === id))
@@ -30,7 +32,7 @@ export function Answer({ runs, page, onPlay }: { runs: Run[]; page: Page; onPlay
         </p>
         <div className="models">
           {cards.map((row) => (
-            <ModelCard key={row.id} row={row} gauge={behind.gauge} onPlay={onPlay} />
+            <ModelCard key={row.id} row={row} gauge={behind.gauge} clipHref={clipHref} />
           ))}
         </div>
         <Ladder ladder={ladder} />
@@ -44,7 +46,7 @@ export function Answer({ runs, page, onPlay }: { runs: Run[]; page: Page; onPlay
 }
 
 // The card's 8 children are the 8 rows of the .models subgrid (SPEC-001 L1): always render all 8, in this order.
-function ModelCard({ row, gauge, onPlay }: { row: Run; gauge: Page["behind"]["gauge"]; onPlay: (rowId: string) => void }) {
+function ModelCard({ row, gauge, clipHref }: { row: Run; gauge: Page["behind"]["gauge"]; clipHref: (rowId: string) => string }) {
   const item = firstItem(row);
   return (
     <article className={row.best ? "model best" : "model"}>
@@ -79,9 +81,9 @@ function ModelCard({ row, gauge, onPlay }: { row: Run; gauge: Page["behind"]["ga
           <span className="mute">{NOT_MEASURED}</span>
         )}
       </div>
-      <button className="play" type="button" onClick={() => onPlay(row.id)}>
+      <Link className="play" href={clipHref(row.id)}>
         ▶ ดูคลิป
-      </button>
+      </Link>
     </article>
   );
 }

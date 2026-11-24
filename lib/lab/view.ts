@@ -1,8 +1,9 @@
 import { evidenceRows } from "./techniques";
-import type { Item, LabData, Meta, Page, Run, Technique, Tier } from "./types";
+import type { Item, LabData, Meeting, Meta, Page, Run, Technique, Tier } from "./types";
 
 // The page passes the browser only what it shows (TASK-007). Next serialises every prop of a client component into the
-// served HTML, shown or not, so `app/page.tsx` hands `LabContent` this copy instead of the back's whole document.
+// served HTML, shown or not, so each page hands its components this copy (then its own slice, lib/lab/site.ts) instead of
+// the back's whole document.
 // A whitelist, not a blacklist: a new pack field stays on the server until a component reads it and it is added here.
 // Dropped on purpose (no component reads them): Run.rent, Run.isoDate · Item.turns, .result, .newFails, .review ·
 // Meta.version, .asOf, .note · Page.version, Page.behind.loop.chartNote · Technique.name, .what and the English fields
@@ -74,6 +75,22 @@ const page = (p: Page) => {
   };
 };
 
+// R-M1 (SPEC-011 § Contract 3): never `id`, `title`, `question`, `how`, `product`, `source`, `foundNote(Th)`,
+// `earsVsBrain`, an arm's `label` or `cut`, a finding's `en` or a fixture's `asrSec`.
+const meeting = (m: Meeting) => ({
+  ...pick(m, ["titleTh", "questionTh", "howTh", "costUsd", "capUsd", "cutWasteUsd", "costNoteTh", "date"]),
+  fixtures: m.fixtures.map((f) => pick(f, ["id", "minutes", "actions"])),
+  arms: m.arms.map((a) => ({
+    ...pick(a, ["id", "labelTh", "kind", "secShort", "secLong"]),
+    found: { ...a.found },
+    done: [...a.done],
+    usdPerMeeting: [...a.usdPerMeeting],
+  })),
+  cutRates: m.cutRates.map((c) => pick(c, ["model", "cut", "calls"])),
+  findings: m.findings.map((f) => ({ th: f.th })),
+  next: m.next.map((n) => pick(n, ["th", "usd"])),
+});
+
 /** A copy of the back's document holding only the fields the page shows. */
 export function toView(lab: LabData): LabData {
   return {
@@ -82,5 +99,6 @@ export function toView(lab: LabData): LabData {
     meta: pick(lab.meta, META),
     page: page(lab.page),
     techniques: lab.techniques.map((t) => ({ ...pick(t, TECHNIQUE), rows: evidenceRows(t.rows, lab.runs) })),
+    meeting: lab.meeting ? meeting(lab.meeting) : null,
   } as unknown as LabData;
 }

@@ -1,5 +1,6 @@
 // เทคนิค (SPEC-003): which ประวัติ rows a technique links to, its group in Thai, and the open rows of ประวัติ that an
-// evidence link opens. Pure functions; LabContent holds the state.
+// evidence link opened on the one-page site (withRow, toggledRow: unused since SPEC-012, where an evidence link goes to
+// /runs/<id>; kept with their tests). Pure functions.
 
 /** A technique's `rows` that name a row on the page, in pack order. Missing `rows` → [] (pack v3.1, AC-7). */
 export function evidenceRows(rows: readonly string[] | undefined, runs: readonly { id: string }[]): string[] {

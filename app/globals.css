@@ -1,4 +1,4 @@
-/* Ported from the reference page's <style> (llm-rent/harness-lab-pack/reference/index.html lines 5–216),
+/* Ported from the reference page's <style> (lines 5–216),
    same variables and class names. Only --display / --body / --mono changed: they point at the next/font
    families declared in app/layout.tsx. Imported after @mantine/core/styles.css so these rules win.
    Changed after the owner's first AC-1 look (TASK-003, SPEC-001 § Layout and accessibility rules): the --*-ink text
@@ -82,8 +82,7 @@ button.term:hover > span { color: var(--signal-ink) }
 button.term[aria-expanded="true"] > span { background: var(--signal-soft); color: var(--signal-ink); text-decoration-style: solid } /* L4 */
 .gloss { background: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 14.5px; line-height: 1.6 }
 .gloss b { font-family: var(--display); margin-right: 6px }
-/* คำศัพท์: every glossary entry, aliases after the term; each dt is an anchor (term-<n>). Open by default (comp A). */
-.glossary-fold { margin-top: 4px }
+/* คำศัพท์ (/glossary): every glossary entry, aliases after the term; each dt is an anchor (term-<n>). */
 dl.glossary { margin: 0; display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr); gap: 6px 16px; font-size: 14px }
 dl.glossary dt { font-weight: 600; overflow-wrap: anywhere }
 dl.glossary dd { margin: 0; color: var(--mute) }
@@ -120,6 +119,7 @@ dl.glossary dd { margin: 0; color: var(--mute) }
 .play { justify-self: start; border: 1px solid var(--signal); background: none; color: var(--signal); border-radius: 99px; padding: 5px 14px; cursor: pointer; font-size: 14px; font-weight: 600;
   align-self: start; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px } /* L5 */
 .play:hover { background: var(--signal); color: var(--paper) }
+a.play { text-decoration: none } /* the card's "▶ ดูคลิป" is a link since TASK-051; it keeps the button's look */
 /* The level ladder in คำตอบ (TASK-004): six cards share the 3 rows of .levels by subgrid (level + mark · means · test).
    now / next: a coloured ring (box-shadow, so no card's size changes) and a tinted text mark. */
 .ladder6 { display: grid; gap: 10px; min-width: 0 }
@@ -161,36 +161,20 @@ video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 10px;
 .clip-row { font: 600 15px var(--display); max-width: none } /* names the row when its card has no clip (TASK-010) */
 .noclip { max-width: none; padding: 28px 16px; text-align: center; background: var(--bg); border-radius: 10px; color: var(--mute); font-size: 14.5px }
 
-/* History */
-/* L6: every entry shares the four columns of .log (id · title + machine line · pill · chevron) by subgrid, so the
-   columns line up row to row; the pill column is as wide as the longest pill. */
+/* ประวัติ's entries, on /runs (the row link's own rules are under .site-log) */
+/* L6: every entry shares the columns of .log (id · title + machine line · pill) by subgrid, so the columns line up row
+   to row; the pill column is as wide as the longest pill. */
 .log { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px 14px }
 .entry { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
   grid-column: 1 / -1; display: grid; grid-template-columns: subgrid }
-.entry > button { grid-column: 1 / -1; width: 100%; background: none; border: 0; text-align: left; cursor: pointer; padding: 12px 16px; min-height: 44px;
-  display: grid; grid-template-columns: subgrid; row-gap: 6px; align-items: center }
-.entry .fold-body { grid-column: 2 / -1 }
-.entry > button > .pill { justify-self: start } /* the pill keeps its own width; the column's left edge is shared */
 .entry .id { white-space: nowrap }
-.entry > button:hover { background: var(--bg) }
 .entry .id { font: 600 13px var(--mono); color: var(--signal) }
 .entry .what { min-width: 0 }
 .entry .what b { font-family: var(--display); font-size: 16px; display: block; line-height: 1.35 }
 .entry .what span { font-size: 13px; color: var(--mute) }
-.entry .chev { transition: transform .2s; color: var(--mute); font: 16px var(--mono) }
-.entry.open .chev { transform: rotate(90deg) }
-.entry .body { padding: 0 16px 16px 0; display: grid; gap: 10px; font-size: 14.5px }
-.entry .body ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
-.entry .body ul.items { list-style: none; padding-left: 0 }
-.entry .items li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px }
-/* Phone: id on its own row, then title, then pill, chevron at the right; the body under all of it. */
+/* Phone: two columns; the row link puts id, title and pill in the first (.site-log). */
 @media (max-width: 600px) {
-  .log { grid-template-columns: minmax(0, 1fr) auto }
-  .entry > button > :nth-child(-n+3) { grid-column: 1 }
-  .entry > button > .chev { grid-column: 2; grid-row: 1 / span 3 }
-  .entry > button > .pill { justify-self: start }
-  .entry .fold-body { grid-column: 1 / -1 }
-  .entry .body { padding-left: 16px } }
+  .log { grid-template-columns: minmax(0, 1fr) auto } }
 .pill { display: inline-block; font: 600 12px var(--mono); padding: 1px 8px; border-radius: 99px; white-space: nowrap }
 .pill.ok { background: var(--ok-soft); color: var(--ok-ink) } .pill.bad { background: var(--bad-soft); color: var(--bad-ink) } .pill.part { background: var(--review-soft); color: var(--review-ink) } /* L4 */
 
@@ -342,6 +326,160 @@ ul.guards .k { font: 600 13px var(--mono); color: var(--signal); padding-top: 2p
 .steps b { font-family: var(--display); font-size: 16px }
 .caveat { font-size: 13.5px; color: var(--mute); display: grid; gap: 4px; margin: 0; padding-left: 18px }
 footer { font-size: 13px; color: var(--mute); border-top: 1px solid var(--line); padding-top: 18px }
+/* R-M1, the meeting study (TASK-040 comp, SPEC-011): the chapter's small visual and the "ดูตัวเลขทั้งหมด" fold. The visual
+   and the arms table each switch on their own width (container queries), so a narrow block never scrolls sideways:
+   the visual's label moves above its bars, and the table's rows become one card per arm, labelled by data-label. */
+.mt-lead { font-size: 17px; display: grid; gap: 6px }
+.mt-visual { margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; min-width: 0; container-type: inline-size }
+.mt-visual figcaption b { font-family: var(--display); font-size: 16px; font-weight: 600 }
+.mt-vrows { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px }
+.mt-vrow { display: grid; grid-template-columns: 220px repeat(4, minmax(0, 1fr)); gap: 12px; align-items: center; font-size: 14px }
+.mt-vhead { font-size: 12.5px; color: var(--mute); align-items: end }
+.mt-vcell { display: grid; grid-template-columns: minmax(0, 1fr) 3.6em; gap: 8px; align-items: center }
+.mt-vcell .num { text-align: right }
+.mt-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden }
+.mt-track i { display: block; height: 100%; background: var(--signal); border-radius: 4px }
+/* TASK-041: a visual label is a term for its way of working; outside running text its tap is 44 px tall (AC-7). Its
+   plain line opens across the row. A USD range never breaks (SPEC-011 § AC-1 result). */
+button.term.term-row { display: inline-flex; align-items: center; min-height: 44px; text-align: left }
+.mt-vrow > .gloss { grid-column: 1 / -1; margin: 0 }
+.nb { white-space: nowrap }
+@container (max-width: 639px) {
+  .mt-vrow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 10px }
+  .mt-vlabel { grid-column: 1 / -1; font-weight: 600 }
+  .mt-vhead > span:first-child { display: none }
+  .mt-vcell { grid-template-columns: minmax(0, 1fr); gap: 4px }
+  .mt-vcell .num { text-align: left }
+}
+.mt-fold > .in { gap: 24px }
+.mt-block { display: grid; gap: 8px; min-width: 0 }
+.mt-block h3 { font-size: 16px }
+.mt-block .money { font-size: 14.5px; margin: 0 }
+.mt-block .money dt { min-width: 0 }
+.mt-block .money dd { margin: 0 }
+.mt-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px }
+@media (max-width: 680px) { .mt-two { grid-template-columns: minmax(0, 1fr) } }
+.mt-note, .mt-legend { font-size: 13.5px }
+.mt-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14.5px }
+.mt-list li { max-width: 66ch }
+.mt-arms { display: grid; gap: 8px; min-width: 0; container-type: inline-size }
+.mt-table { border-collapse: collapse; width: 100%; font-size: 14px }
+.mt-table th, .mt-table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top }
+.mt-table thead th { font-weight: 500; font-size: 13px; color: var(--mute) }
+.mt-table tbody th { font-weight: 500 }
+.mt-table td { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+.mt-table .dash { color: var(--mute) }
+@container (max-width: 639px) {
+  .mt-table, .mt-table tbody { display: block }
+  .mt-table thead { display: none }
+  .mt-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; padding: 10px 0; border-bottom: 1px solid var(--line) }
+  .mt-table tbody th { grid-column: 1 / -1; border: 0; padding: 0 0 4px; font-family: var(--display); font-weight: 600 }
+  .mt-table td { display: flex; justify-content: space-between; gap: 8px; border: 0; padding: 2px 0 }
+  .mt-table td::before { content: attr(data-label); font-family: var(--body); color: var(--mute); white-space: normal }
+  .mt-table td.wide { grid-column: 1 / -1 }
+}
+/* TASK-042, the multi-page comp (SPEC-012 § The comp; app/comp/, deleted in the first build TASK): the home's story
+   block, doors, latest run and study, and the platform's search and runs strip; the run page's crumbs, tabs, panel,
+   sidebar and prev/next. Every link is a 44-px target, and the page never scrolls sideways. */
+.site-crumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--mute) }
+.site-crumbs li + li::before { content: "›"; margin: 0 8px }
+.site-crumbs a { display: inline-flex; align-items: center; min-height: 44px; color: var(--mute);
+  position: relative; padding-inline: 8px; margin-inline: -8px } /* TASK-051 (DEF-1): 8 px more tap on each side, into the "›" gaps; the text stays where it was */
+.site-crumbs a:hover { color: var(--ink) }
+.site-crumbs [aria-current] { color: var(--ink); font-weight: 600 }
+.site-story ol { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden }
+.site-story li + li { border-top: 1px solid var(--line) }
+.site-story a { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 2px 18px; align-items: baseline; min-height: 44px; padding: 12px 22px; text-decoration: none; color: inherit }
+.site-story a:hover { background: var(--bg) }
+.site-story .when { font: 500 12.5px var(--mono); color: var(--mute) }
+.site-story b { font: 600 16px/1.4 var(--display) }
+.site-doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+@media (max-width: 560px) { .site-doors { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+.site-doors a { display: grid; gap: 2px; align-content: center; min-height: 64px; padding: 12px 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit }
+.site-doors a:hover, .site-card:hover, .site-strip li a:hover, .site-search li a:hover { border-color: var(--signal) }
+.site-doors b { font: 600 16px var(--display) }
+.site-doors span { font-size: 13px }
+.site-latest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px }
+.site-latest section { gap: 12px }
+@media (max-width: 760px) { .site-latest { grid-template-columns: minmax(0, 1fr) } }
+.site-card { display: grid; gap: 6px; justify-items: start; padding: 16px 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: inherit }
+.site-card b { font: 600 17px/1.35 var(--display) }
+.site-card .mute { font-size: 13.5px }
+.site-id { font: 600 13px var(--mono); color: var(--signal) }
+.site-search { display: grid; gap: 8px; max-width: 560px }
+.site-search label { font-size: 14px; font-weight: 600 }
+.site-search input { font: inherit; font-size: 16px; height: 44px; padding: 0 14px; border: 1px solid var(--mute); border-radius: 10px; background: var(--paper); color: var(--ink); width: 100% }
+.site-search ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+.site-search li a { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; min-height: 44px; align-content: center; padding: 6px 12px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); text-decoration: none; color: inherit }
+.site-search .mute { margin: 0 }
+.site-kind { font: 500 12px var(--mono); color: var(--mute) }
+.site-strip-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px }
+.site-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; font-size: 14px }
+.site-sort .mute { margin-right: 4px }
+.site-sort a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 99px; text-decoration: none; color: var(--mute) }
+.site-sort a:hover { background: var(--bg); color: var(--ink) }
+.site-sort a.on { background: var(--signal-soft); color: var(--signal-ink); font-weight: 600 }
+.site-strip ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.site-strip li a { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; min-height: 44px; padding: 10px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: inherit }
+.site-strip b { font-weight: 600 }
+.site-strip .num { font-size: 13px; white-space: nowrap }
+@media (max-width: 560px) { .site-strip li a { grid-template-columns: 3.2em minmax(0, 1fr) } .site-strip .num { grid-column: 2 } }
+.site-run { display: grid; gap: 24px }
+.site-run.with-side { grid-template-columns: minmax(0, 1fr) 250px; align-items: start }
+@media (max-width: 860px) { .site-run.with-side { grid-template-columns: minmax(0, 1fr) } }
+.site-main { display: grid; gap: 18px; min-width: 0 }
+.site-head { display: grid; gap: 10px }
+.site-head h1 { font-size: clamp(28px, 4.4vw, 40px) }
+.site-head p { margin: 0 }
+.site-marks { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.site-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none }
+.site-tabs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; text-decoration: none; color: var(--mute); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap }
+.site-tabs a:hover { color: var(--ink) }
+.site-tabs a.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--signal) }
+.site-panel { min-width: 0 }
+.site-summary { display: grid; gap: 10px; font-size: 15.5px; max-width: 70ch }
+.site-summary p { margin: 0 }
+.site-summary ul { margin: 0; padding-left: 20px; display: grid; gap: 4px }
+.site-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px }
+.site-items li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px }
+.site-prevnext { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 4px }
+.site-prevnext a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--signal-ink); font-weight: 600 }
+.site-side { position: sticky; top: 72px; display: grid; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px }
+.site-side h2 { font-size: 16px }
+.site-side ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.site-side a { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 8px; align-items: baseline; align-content: center; min-height: 44px; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: inherit; font-size: 14px }
+.site-side a:hover { background: var(--bg) }
+.site-side a[aria-current] { background: var(--signal-soft); color: var(--signal-ink); font-weight: 600 }
+@media (max-width: 860px) { .site-side { position: static } }
+.site-404 { gap: 12px; padding-block: 40px }
+.site-404 a { display: inline-flex; align-items: center; min-height: 44px; color: var(--signal-ink); font-weight: 600; text-underline-offset: 3px } /* the site's text link (.ev-links a) */
+.site-404 a:hover { color: var(--ink) }
+/* TASK-047, /runs (SPEC-012 D2): the ประวัติ entry header as a link: the .log columns and the .entry card, the link where
+   the fold's button was, with no chevron and no fold. */
+.site-log { list-style: none; margin: 0; padding: 0 }
+.site-log .entry > a { grid-column: 1 / -1; padding: 12px 16px; min-height: 44px; display: grid; grid-template-columns: subgrid; row-gap: 6px; align-items: center; text-decoration: none; color: inherit }
+.site-log .entry > a:hover { background: var(--bg) }
+.site-log .entry > a > .pill { justify-self: start }
+@media (max-width: 600px) { .site-log .entry > a > * { grid-column: 1 } }
+/* TASK-048, SPEC-012 D11: a section title that is its page's h1 keeps the h2 look (h2's size, line height, tracking). */
+.as-h2 { font-size: clamp(23px, 3.2vw, 30px); line-height: 1.2; letter-spacing: normal }
+/* /techniques (TASK-048): one block per group; the card's name is a link with a 44-px tap area that leaves the card's
+   rows where they were (padding out, margin back in), drawn above the next row so the whole area takes the press. */
+.tech-group { gap: 12px }
+.tech h3 a { position: relative; display: inline-block; padding-block: 11px; margin-block: -11px; color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px }
+.tech h3 a:hover { color: var(--signal-ink); text-decoration-color: currentColor }
+/* /techniques/[id]: the one card at the width it has in the 2-column list; its name is the page's h1 with the h3 look. */
+.site-tech { display: grid; gap: 18px }
+.tech h1 { font-size: 16px; line-height: 1.4; letter-spacing: normal }
+@media (min-width: 900px) { .site-tech .techs { grid-template-columns: minmax(0, 1fr); width: calc((100% - 12px) / 2) } }
+/* SPEC-012 D11 (TASK-048 Q3, TASK-049 Q1): under a page's h1, a section's h3s are h2s with the h3 look, per context. */
+.as-h3 { font-size: 18px; line-height: 1.3 }
+.cmp-item .as-h3 { font-size: 16px }
+.tier .head .as-h3 { font-size: 20px }
+/* /glossary (TASK-049): the "คำศัพท์" list on the card it had inside its fold (details.fold > .in). */
+.site-glossary { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px }
+/* /studies: one card per study, the home's latest-study card. */
+.site-studies ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: 560px }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
 .grow { transform-origin: left center; transition: transform .9s cubic-bezier(.2, .7, .2, 1) }
 .grow.pre { transform: scaleX(0) }

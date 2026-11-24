@@ -56,7 +56,8 @@ const view = toView(lab);
 const at = (o: unknown, path: string) => path.split(".").reduce<unknown>((v, k) => (v as Record<string, unknown>)?.[k], o);
 
 // Every field a component reads (TASK-007 Implementation Notes: Answer, Ladder, Clips, History, Compare, Plan, Behind,
-// Footer, LabContent and lib/lab/{items,compare,plan,vram}). Written out here on purpose, not imported from view.ts.
+// Footer, the one-page wrapper (deleted in TASK-048) and lib/lab/{items,compare,plan,vram}). Written out here on purpose,
+// not imported from view.ts.
 const READ = [
   ...["id", "date", "gpu", "model", "quant", "ctx", "card", "loop", "cost", "best", "title", "sum", "tag", "stamp", "stampText",
     "watch", "notes", "label", "verdict"].map((f) => `runs.0.${f}`),
@@ -143,5 +144,48 @@ describe("toView — the browser gets only what the page shows", () => {
   test("a row's mutations: null stays null", () => {
     const nullMut = { ...lab, runs: [{ ...lab.runs[0], items: [{ ...lab.runs[0].items[0], mutations: null }] }] } as LabData;
     expect(toView(nullMut).runs[0].items[0].mutations).toBeNull();
+  });
+});
+
+// pack v3.9 meeting.json, every key the pack carries plus made-up ones (SPEC-011 § Contract 3). Test data only: the
+// English text, `product`, `source` and the fixture names stand in for what must not reach the browser.
+const meeting = {
+  id: "R-M1", date: "2026-11-23", product: "PRODUCT-REPO", title: "EN TITLE", titleTh: "tth", question: "EN QUESTION",
+  questionTh: "qth", how: "EN HOW", howTh: "hth", costUsd: 5.48, capUsd: 6, cutWasteUsd: 2.42, costNoteTh: "cth",
+  fixtures: [{ id: "mm-a", minutes: 4.1, actions: 5, asrSec: 42, extraFixture: "drop me" }],
+  arms: [{ id: "L", label: "EN LABEL", labelTh: "lth", kind: "local", found: { "mm-a": null }, cut: { "mm-a": "EN CUT" },
+    done: [4, 5], secShort: 143, usdPerMeeting: [0, 0], extraArm: "drop me" }],
+  foundNote: "EN NOTE", foundNoteTh: "NOTE TH", cutRates: [{ model: "m", cut: 7, calls: 13, extraCut: "drop me" }],
+  earsVsBrain: { local: { asr: [2], gold: [2] } }, findings: [{ en: "EN FINDING", th: "fth" }],
+  next: [{ th: "nth", usd: 0.1, extraNext: "drop me" }], source: "SOURCE/PATH",
+};
+
+describe("toView — meeting (SPEC-011 § Contract 3)", () => {
+  const mv = toView({ ...lab, meeting } as unknown as LabData).meeting!;
+
+  test("exactly the contract's fields, at every level", () => {
+    expect(Object.keys(mv).sort()).toEqual(["arms", "capUsd", "costNoteTh", "costUsd", "cutRates", "cutWasteUsd", "date",
+      "findings", "fixtures", "howTh", "next", "questionTh", "titleTh"]);
+    expect(Object.keys(mv.fixtures[0]).sort()).toEqual(["actions", "id", "minutes"]);
+    expect(Object.keys(mv.arms[0]).sort()).toEqual(["done", "found", "id", "kind", "labelTh", "secShort", "usdPerMeeting"]);
+    expect(Object.keys(mv.cutRates[0]).sort()).toEqual(["calls", "cut", "model"]);
+    expect(Object.keys(mv.findings[0])).toEqual(["th"]);
+    expect(Object.keys(mv.next[0]).sort()).toEqual(["th", "usd"]);
+  });
+
+  test("a null in found stays null (shown as —), values unchanged", () => {
+    expect(mv.arms[0].found).toEqual({ "mm-a": null });
+    expect(mv.arms[0].done).toEqual([4, 5]);
+    expect(mv.costUsd).toBe(5.48);
+  });
+
+  test("no product, source, English text, legend note or made-up field reaches the browser (req 6)", () => {
+    const json = JSON.stringify(mv);
+    expect(["PRODUCT-REPO", "SOURCE/PATH", "EN TITLE", "EN QUESTION", "EN HOW", "EN LABEL", "EN CUT", "EN NOTE", "NOTE TH",
+      "EN FINDING", "drop me", "asrSec", "earsVsBrain", '"R-M1"'].filter((s) => json.includes(s))).toEqual([]);
+  });
+
+  test("no meeting in the back's body → null; the other five keys are as before", () => {
+    expect(toView(lab).meeting).toBeNull();
   });
 });
